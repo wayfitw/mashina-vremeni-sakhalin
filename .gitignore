@@ -1,0 +1,15 @@
+# секреты — НИКОГДА не коммитим
+app/backend/.env
+
+# окружение и кэши
+app/backend/.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# сгенерированные файлы и отладочные кадры (личные фото гостей)
+app/backend/assets/output/*
+!app/backend/assets/output/.gitkeep
+
+# большое медиа фронтенда (видео кладётся на месте)
+app/frontend/media/*.mp4

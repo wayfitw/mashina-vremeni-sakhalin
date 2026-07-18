@@ -1,0 +1,47 @@
+{
+  "aniva": {
+    "id": "aniva",
+    "title": "Маяк Анива",
+    "subtitle": "Легендарный маяк на скале в открытом море",
+    "enabled": true,
+    "reference": "aniva_clean.png",
+    "anchor": {
+      "cx": 0.42,
+      "bottom": 0.965,
+      "height": 0.6
+    },
+    "prompt": "Photo editing task: ADD a person into an existing photograph. Image 3 is the BASE photograph — the Aniva Lighthouse on Sakhalin. Keep image 3 EXACTLY as it is: same camera angle, same framing, same lighthouse, same rocks, sea, sky and birds. Do NOT re-imagine, re-frame, rotate or re-compose the scene — the output background must be faithful to image 3. Into THIS exact frame, insert the guest: image 1 is their FACE (copy it precisely — same face shape, cheeks, jawline, eyes, skin tone; no beautifying, no widening, no smoothing), image 2 shows their true BODY BUILD (match it — not heavier, not slimmer; ignore everything else in images 1–2). The guest stands on the rocks in the lower foreground at believable scale, in a RELAXED natural pose: body turned slightly at an angle, weight on one leg, one hand casually in a pocket, light genuine smile — NOT a stiff frontal passport pose. Blend the insertion perfectly: light the guest with the scene's warm coastal light, consistent shadow direction, soft realistic contact shadows under the feet, matching color grading and photographic grain so the person looks originally photographed in this frame. Outfit: {OUTFIT}. Strictly no text, captions, logos, borders, extra people, warped anatomy, no cut-out collage look, and no changes to the background scene."
+  },
+  "tikhaya": {
+    "id": "tikhaya",
+    "title": "Бухта Тихая",
+    "subtitle": "Хребты и залив у подножия гор",
+    "enabled": false,
+    "reference": "tikhaya.jpg",
+    "prompt": "Place the PERSON from the portrait photorealistically at Tikhaya Bay on Sakhalin — a calm sea inlet at the foot of steep green-grey mountain ridges, pebble shoreline. Preserve their identity exactly. Vertical DSLR travel photo. No text, logos, frames, extra people or distortions."
+  },
+  "velikan": {
+    "id": "velikan",
+    "title": "Мыс Великан",
+    "subtitle": "Каменные арки и кекуры Охотского моря",
+    "enabled": false,
+    "reference": "velikan.jpg",
+    "prompt": "Place the PERSON from the portrait photorealistically at Cape Velikan on Sakhalin — spectacular sea stacks and natural rock arches rising from the turquoise Sea of Okhotsk. Preserve their identity exactly. Vertical DSLR travel photo. No text, logos, frames, extra people or distortions."
+  },
+  "chertov_most": {
+    "id": "chertov_most",
+    "title": "Чёртов мост",
+    "subtitle": "Инженерное чудо Сахалинской железной дороги",
+    "enabled": false,
+    "reference": "chertov_most.jpg",
+    "prompt": "Place the PERSON from the portrait photorealistically at the Devil's Bridge of the old Sakhalin railway — a curved stone-and-steel viaduct winding through forested hills, autumn taiga. Preserve their identity exactly. Vertical DSLR travel photo. No text, logos, frames, extra people or distortions."
+  },
+  "klokovsky": {
+    "id": "klokovsky",
+    "title": "Клоковский водопад",
+    "subtitle": "Падающая вода у берега моря",
+    "enabled": false,
+    "reference": "klokovsky.jpg",
+    "prompt": "Place the PERSON from the portrait photorealistically at Klokovsky Waterfall on Sakhalin — a wide waterfall cascading down a rocky ledge toward the sea shore, wet rocks, lush greenery and mist. Preserve their identity exactly. Vertical DSLR travel photo. No text, logos, frames, extra people or distortions."
+  }
+}

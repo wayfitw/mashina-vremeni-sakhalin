@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Машина времени: Сахалин</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- 1. Приветствие -->
+  <section class="screen active" data-screen="welcome">
+    <video class="bg-video" autoplay muted loop playsinline preload="auto">
+      <source src="media/intro.mp4" type="video/mp4">
+    </video>
+    <div class="bg-overlay"></div>
+    <div class="hero">
+      <p class="eyebrow">Интерактивная AI-фотоинсталляция</p>
+      <h1>«Я на <span>Сахалине</span>»</h1>
+      <p class="lead">За секунды перенесём вас к легендарным местам острова.<br>Сделайте фото — и заберите карточку на память.</p>
+      <button class="btn-primary big" data-go="locations">Путешествовать по Сахалину →</button>
+    </div>
+    <footer>IQTER · Интеллектуальные Терминалы</footer>
+  </section>
+
+  <!-- 2. Выбор локации -->
+  <section class="screen" data-screen="locations">
+    <h2>Куда отправимся?</h2>
+    <p class="sub">Выберите локацию Сахалина</p>
+    <div id="locations" class="grid"></div>
+    <button class="btn-ghost" data-go="welcome">← Назад</button>
+  </section>
+
+  <!-- 2b. Выбор образа -->
+  <section class="screen" data-screen="outfit">
+    <h2>Выберите образ</h2>
+    <p class="sub">В каком наряде отправить вас на Сахалин?</p>
+    <div class="outfit-grid">
+      <div class="outfit" data-outfit="female">
+        <div class="emoji">👛</div>
+        <h3>Женский</h3>
+        <p>Современный спортивный костюм — розовый или белый</p>
+      </div>
+      <div class="outfit" data-outfit="male">
+        <div class="emoji">🧢</div>
+        <h3>Мужской</h3>
+        <p>Белая футболка и штаны</p>
+      </div>
+    </div>
+    <button class="btn-ghost" data-go="locations">← Назад</button>
+  </section>
+
+  <!-- 3. Съёмка -->
+  <section class="screen" data-screen="capture">
+    <h2 id="capture-title">Сделайте фотографию</h2>
+    <p class="sub">Лицо — в овале, в кадре вы <b>по пояс</b>: так мы сохраним вашу фигуру</p>
+    <div class="camera-wrap">
+      <video id="video" autoplay playsinline></video>
+      <div class="face-guide"></div>
+      <div id="cam-error" class="cam-error hidden">Камера недоступна — загрузите фото файлом ниже</div>
+    </div>
+    <div class="row">
+      <button class="btn-primary big" id="shoot">📸 Снять</button>
+      <label class="btn-ghost upload">Загрузить фото
+        <input type="file" id="file" accept="image/*" hidden>
+      </label>
+    </div>
+    <button class="btn-ghost" data-go="locations">← Другая локация</button>
+  </section>
+
+  <!-- 4. Генерация -->
+  <section class="screen" data-screen="loading">
+    <div class="spinner"></div>
+    <h2>Переносим вас на Сахалин…</h2>
+    <p class="sub" id="loading-note">Нейросеть создаёт кадры — это займёт несколько секунд</p>
+  </section>
+
+  <!-- 5. Выбор варианта -->
+  <section class="screen" data-screen="variants">
+    <h2>Выберите лучший кадр</h2>
+    <p class="sub" id="variants-loc"></p>
+    <div id="variants" class="variants"></div>
+    <button class="btn-ghost" id="retake">↺ Переснять</button>
+  </section>
+
+  <!-- 6. Карточка -->
+  <section class="screen" data-screen="card">
+    <h2>Ваша фото-карточка</h2>
+    <div class="card-view">
+      <img id="card-img" alt="карточка">
+      <div class="card-side">
+        <img id="qr-img" class="qr" alt="QR">
+        <p class="sub">Наведите камеру телефона<br>на QR — заберёте цифровую версию</p>
+        <button class="btn-primary big" id="print">🖨 Отправить в печать</button>
+        <button class="btn-ghost" data-go="welcome" id="finish">Готово</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Печать -->
+  <section class="screen" data-screen="done">
+    <div class="check">✓</div>
+    <h2 id="done-title">Готово!</h2>
+    <p class="sub" id="done-note">Заберите карточку у стенда</p>
+    <p class="countdown">Возврат к началу через <span id="cd">8</span>…</p>
+  </section>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>

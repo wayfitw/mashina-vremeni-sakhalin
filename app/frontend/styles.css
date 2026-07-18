@@ -1,0 +1,98 @@
+:root{
+  --teal:#0b5563; --teal2:#14707f; --ink:#14313a; --bg:#eef3f4; --accent:#d97a25;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;height:100%;}
+body{
+  font-family:-apple-system,'Helvetica Neue',Arial,sans-serif; color:var(--ink);
+  background:radial-gradient(circle at 50% -10%, #123c47 0%, #0b2831 60%, #071d24 100%);
+  overflow:hidden; user-select:none;
+}
+#app{position:fixed; inset:0;}
+.screen{
+  position:absolute; inset:0; display:none; flex-direction:column;
+  align-items:center; justify-content:center; text-align:center; padding:5vh 6vw;
+  animation:fade .45s ease;
+}
+.screen.active{display:flex;}
+
+/* Фоновое зацикленное видео на приветствии (облёты локаций Сахалина) */
+.bg-video{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;}
+.bg-overlay{position:absolute; inset:0; z-index:1;
+  background:linear-gradient(180deg, rgba(7,29,36,.55) 0%, rgba(7,29,36,.35) 45%, rgba(7,29,36,.8) 100%);}
+[data-screen="welcome"] .hero,
+[data-screen="welcome"] footer{position:relative; z-index:2;}
+@keyframes fade{from{opacity:0; transform:translateY(12px);}to{opacity:1; transform:none;}}
+
+h1{font-size:min(11vw,84px); margin:.1em 0; color:#fff; letter-spacing:-1px;}
+h1 span{color:#5fd0df;}
+h2{font-size:min(6vw,40px); color:#fff; margin:.2em 0;}
+.eyebrow{color:#5fd0df; letter-spacing:3px; text-transform:uppercase; font-size:14px; font-weight:700;}
+.lead{color:#cfe1e4; font-size:min(3.2vw,22px); line-height:1.5; margin:1em 0 2em;}
+.sub{color:#a9c4c9; font-size:min(3vw,20px); margin:.2em 0 1.4em;}
+footer{position:absolute; bottom:24px; color:#5a7b82; font-size:13px;}
+
+.btn-primary{
+  background:linear-gradient(135deg,#14707f,#0b5563); color:#fff; border:none;
+  border-radius:16px; padding:18px 34px; font-size:20px; font-weight:700; cursor:pointer;
+  box-shadow:0 10px 30px rgba(0,0,0,.35); transition:transform .1s;
+}
+.btn-primary:active{transform:scale(.96);}
+.btn-primary.big{font-size:min(4vw,26px); padding:22px 44px; border-radius:20px;}
+.btn-ghost{
+  background:transparent; color:#a9c4c9; border:1.5px solid #3a616b; border-radius:14px;
+  padding:14px 26px; font-size:18px; cursor:pointer; margin-top:18px;
+}
+.btn-ghost:active{background:rgba(255,255,255,.06);}
+.row{display:flex; gap:18px; align-items:center; margin-top:10px; flex-wrap:wrap; justify-content:center;}
+.upload{display:inline-flex; align-items:center;}
+
+.grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:20px; width:100%; max-width:1000px;}
+.loc{
+  background:rgba(255,255,255,.07); border:1.5px solid #2c5560; border-radius:20px; padding:26px 22px;
+  cursor:pointer; text-align:left; transition:transform .12s, border-color .12s;
+}
+.loc:active{transform:scale(.97);}
+.loc.on{border-color:#5fd0df;}
+.loc.off{opacity:.4; pointer-events:none;}
+.loc h3{margin:0 0 6px; color:#fff; font-size:24px;}
+.loc p{margin:0; color:#a9c4c9; font-size:15px;}
+.loc .soon{color:var(--accent); font-size:13px; font-weight:700; margin-top:10px;}
+
+.outfit-grid{display:flex; gap:24px; flex-wrap:wrap; justify-content:center; max-width:760px;}
+.outfit{background:rgba(255,255,255,.07); border:1.5px solid #2c5560; border-radius:22px;
+  padding:30px 28px; width:300px; cursor:pointer; transition:transform .12s, border-color .12s;}
+.outfit:active{transform:scale(.97);} .outfit:hover{border-color:#5fd0df;}
+.outfit .emoji{font-size:52px; margin-bottom:8px;}
+.outfit h3{margin:0 0 8px; color:#fff; font-size:26px;}
+.outfit p{margin:0; color:#a9c4c9; font-size:16px;}
+
+/* Овал-рамка для лица на экране съёмки */
+.face-guide{position:absolute; left:50%; top:42%; transform:translate(-50%,-50%);
+  width:52%; aspect-ratio:3/4; border:3px dashed rgba(255,255,255,.85); border-radius:50%;
+  box-shadow:0 0 0 1000px rgba(7,29,36,.35); pointer-events:none; z-index:2;}
+
+.camera-wrap{position:relative; width:min(70vw,540px); aspect-ratio:3/4; border-radius:24px; overflow:hidden;
+  background:#000; box-shadow:0 12px 40px rgba(0,0,0,.5); margin:10px 0 22px;}
+#video{width:100%; height:100%; object-fit:cover; transform:scaleX(-1);}
+.cam-error{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; padding:20px; background:rgba(0,0,0,.6);}
+
+.spinner{width:80px; height:80px; border:7px solid rgba(255,255,255,.15); border-top-color:#5fd0df;
+  border-radius:50%; animation:spin 1s linear infinite; margin-bottom:24px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.variants{display:flex; gap:22px; flex-wrap:wrap; justify-content:center;}
+.variants img{width:min(28vw,280px); aspect-ratio:3/4; object-fit:cover; border-radius:18px;
+  border:4px solid transparent; cursor:pointer; box-shadow:0 8px 26px rgba(0,0,0,.4); transition:transform .12s, border-color .12s;}
+.variants img:active{transform:scale(.97);}
+.variants img.sel{border-color:#5fd0df;}
+
+.card-view{display:flex; gap:40px; align-items:center; flex-wrap:wrap; justify-content:center;}
+#card-img{width:min(42vw,380px); border-radius:14px; box-shadow:0 14px 44px rgba(0,0,0,.5); background:#fff;}
+.card-side{display:flex; flex-direction:column; align-items:center; gap:8px;}
+.qr{width:150px; height:150px; background:#fff; border-radius:12px; padding:8px;}
+
+.check{width:110px; height:110px; border-radius:50%; background:#1f9d63; color:#fff; font-size:64px;
+  display:flex; align-items:center; justify-content:center; margin-bottom:16px; box-shadow:0 10px 30px rgba(0,0,0,.4);}
+.countdown{color:#7fa0a7; margin-top:20px;}
+.hidden{display:none;}
