@@ -130,7 +130,7 @@ async function chooseVariant(v, imgEl) {
   } catch (e) {
     alert('Ошибка сборки карточки'); show('variants');
   } finally {
-    $('#loading-note').textContent = 'Нейросеть создаёт кадры — это займёт несколько секунд';
+    $('#loading-note').textContent = 'Нейросеть создаёт кадры — это займёт 1–2 минуты. Пожалуйста, подождите и не закрывайте страницу.';
   }
 }
 

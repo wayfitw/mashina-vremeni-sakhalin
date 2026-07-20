@@ -8,6 +8,15 @@ from __future__ import annotations
 import io
 import json
 import subprocess
+import sys
+
+# Windows: консоль по умолчанию cp1252, а логи/print содержат кириллицу —
+# без этого обработчик ошибки сам падает с UnicodeEncodeError (500 вместо чистого 502).
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8")
+    except Exception:  # noqa: BLE001 — не критично, если поток не поддерживает
+        pass
 import uuid
 from pathlib import Path
 from typing import Optional

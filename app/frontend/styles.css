@@ -12,16 +12,17 @@ body{
 .screen{
   position:absolute; inset:0; display:none; flex-direction:column;
   align-items:center; justify-content:center; text-align:center; padding:5vh 6vw;
-  animation:fade .45s ease;
+  animation:fade .45s ease; z-index:2;
 }
 .screen.active{display:flex;}
 
-/* Фоновое зацикленное видео на приветствии (облёты локаций Сахалина) */
-.bg-video{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;}
-.bg-overlay{position:absolute; inset:0; z-index:1;
-  background:linear-gradient(180deg, rgba(7,29,36,.55) 0%, rgba(7,29,36,.35) 45%, rgba(7,29,36,.8) 100%);}
-[data-screen="welcome"] .hero,
-[data-screen="welcome"] footer{position:relative; z-index:2;}
+/* Глобальное зацикленное видео-фон за всем сайтом (облёты локаций Сахалина).
+   Приглушено: лёгкое размытие прячет пиксели/артефакты сжатия, снижены яркость
+   и насыщенность. scale(1.06) — чтобы размытые края не оголяли фон по периметру. */
+.site-bg-video{position:fixed; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;
+  filter:blur(4px) brightness(.9) saturate(.9); transform:scale(1.04);}
+.site-bg-overlay{position:fixed; inset:0; z-index:1;
+  background:linear-gradient(180deg, rgba(7,29,36,.55) 0%, rgba(7,29,36,.4) 45%, rgba(7,29,36,.78) 100%);}
 @keyframes fade{from{opacity:0; transform:translateY(12px);}to{opacity:1; transform:none;}}
 
 h1{font-size:min(11vw,84px); margin:.1em 0; color:#fff; letter-spacing:-1px;}

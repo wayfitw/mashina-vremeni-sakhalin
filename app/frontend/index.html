@@ -9,12 +9,14 @@
 <body>
 <div id="app">
 
+  <!-- Глобальный фон: зацикленное видео за всем сайтом -->
+  <video class="site-bg-video" autoplay muted loop playsinline preload="auto" poster="media/intro-poster.jpg">
+    <source src="media/intro.mp4" type="video/mp4">
+  </video>
+  <div class="site-bg-overlay"></div>
+
   <!-- 1. Приветствие -->
   <section class="screen active" data-screen="welcome">
-    <video class="bg-video" autoplay muted loop playsinline preload="auto">
-      <source src="media/intro.mp4" type="video/mp4">
-    </video>
-    <div class="bg-overlay"></div>
     <div class="hero">
       <p class="eyebrow">Интерактивная AI-фотоинсталляция</p>
       <h1>«Я на <span>Сахалине</span>»</h1>
@@ -73,7 +75,7 @@
   <section class="screen" data-screen="loading">
     <div class="spinner"></div>
     <h2>Переносим вас на Сахалин…</h2>
-    <p class="sub" id="loading-note">Нейросеть создаёт кадры — это займёт несколько секунд</p>
+    <p class="sub" id="loading-note">Нейросеть создаёт кадры — это займёт 1–2 минуты. Пожалуйста, подождите и не закрывайте страницу.</p>
   </section>
 
   <!-- 5. Выбор варианта -->
