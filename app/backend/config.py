@@ -58,7 +58,11 @@ REPLICATE_API_TOKEN = os.environ.get("REPLICATE_API_TOKEN", "").strip()
 # Модель генерации на Replicate. По итогам A/B-теста (18.07.2026) —
 # google/nano-banana-2 в 2K: лучшее лицо БЕЗ face-swap (см. _ab_*.jpg).
 # Альтернативы: bytedance/seedream-4, google/nano-banana-pro.
-NANO_BANANA_MODEL = os.environ.get("NANO_BANANA_MODEL", "google/nano-banana-2").strip()
+# По A/B с ArcFace-метрикой (21.07.2026) bytedance/seedream-4.5 держит лицо
+# заметно лучше nano-banana (raw 0.74 vs 0.31; со свапом 0.85 vs 0.82) — дефолт.
+NANO_BANANA_MODEL = os.environ.get(
+    "NANO_BANANA_MODEL",
+    "bytedance/seedream-4.5:9fe3b8282dcb9d9063b05e33210a1432801f7c5a6641db944baefcec4886761a").strip()
 NANO_BANANA_RESOLUTION = os.environ.get("NANO_BANANA_RESOLUTION", "2K").strip()
 
 # Face-swap (inswapper) работает в 128×128 → «восковое» лицо. ВЫКЛЮЧЕН по умолчанию;

@@ -68,19 +68,30 @@ def _data_uri(image_bytes: bytes, mime: str = "image/jpeg") -> str:
     return f"data:{mime};base64,{base64.b64encode(_shrink(image_bytes)).decode()}"
 
 
+def _apply_model_args(inp: dict) -> dict:
+    """Дополняет вход под семейство модели в NANO_BANANA_MODEL:
+      - Seedream (bytedance/seedream-*): параметр `size`, без `output_format`;
+      - Nano Banana (google/nano-banana*): `output_format` + `resolution`.
+    По ArcFace (21.07.2026) seedream-4.5 держит лицо лучше (0.74 vs 0.31 raw)."""
+    if "seedream" in NANO_BANANA_MODEL:
+        inp["size"] = config.NANO_BANANA_RESOLUTION  # 2K
+    else:
+        inp["output_format"] = "jpg"
+        if "nano-banana" in NANO_BANANA_MODEL:
+            inp["resolution"] = config.NANO_BANANA_RESOLUTION
+    return inp
+
+
 def _nano_banana_sync(images: list[bytes], prompt: str) -> bytes | None:
-    """Nano Banana (multi-image): гость + эталон сцены → фотореалистичная вставка
+    """Генерация (multi-image): гость + эталон сцены → фотореалистичная вставка
     с сохранением лица и телосложения, узнаваемым фоном, нейтральной одеждой."""
     if not _client:
         return None
-    inp = {
+    inp = _apply_model_args({
         "prompt": prompt,
         "image_input": [_data_uri(b) for b in images],
         "aspect_ratio": "3:4",
-        "output_format": "jpg",
-    }
-    if "nano-banana-2" in NANO_BANANA_MODEL:
-        inp["resolution"] = config.NANO_BANANA_RESOLUTION  # 2K: больше пикселей на лицо
+    })
     output = _client.run(NANO_BANANA_MODEL, input=inp)
     return _read_output(output)
 
@@ -124,14 +135,11 @@ NANO_SWAP_PROMPT = (
 def _nano_face_swap_sync(frame: bytes, face_png: bytes) -> bytes | None:
     if not _client:
         return None
-    inp = {
+    inp = _apply_model_args({
         "prompt": NANO_SWAP_PROMPT,
         "image_input": [_data_uri(frame), _data_uri(face_png)],
         "aspect_ratio": "3:4",
-        "output_format": "jpg",
-    }
-    if "nano-banana-2" in NANO_BANANA_MODEL:
-        inp["resolution"] = config.NANO_BANANA_RESOLUTION
+    })
     output = _client.run(NANO_BANANA_MODEL, input=inp)
     return _read_output(output)
 
