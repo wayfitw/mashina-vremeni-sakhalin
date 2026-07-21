@@ -109,6 +109,55 @@ def nano_banana(images: list[bytes], prompt: str, retries: int = 3) -> bytes | N
     return None
 
 
+# Второй проход nano-banana = диффузионный face-swap в ПОЛНОМ разрешении (рек. №2):
+# без 128px-бутылочного горлышка inswapper → без «восковости», выше детализация.
+NANO_SWAP_PROMPT = (
+    "Image 1 is a photo of a person in a scene. Image 2 is a close-up of the SAME person's real face. "
+    "Replace ONLY the face in image 1 with the exact face from image 2: same identity, same facial "
+    "features, same eyes, nose, mouth, face shape and skin tone. Keep EVERYTHING else in image 1 "
+    "exactly as is — pose, body, hair, clothing, background, framing and lighting must not change. "
+    "Match the face lighting and skin tone to image 1. Photorealistic, seamless, natural skin texture, "
+    "sharp facial detail. Do not beautify or alter the identity."
+)
+
+
+def _nano_face_swap_sync(frame: bytes, face_png: bytes) -> bytes | None:
+    if not _client:
+        return None
+    inp = {
+        "prompt": NANO_SWAP_PROMPT,
+        "image_input": [_data_uri(frame), _data_uri(face_png)],
+        "aspect_ratio": "3:4",
+        "output_format": "jpg",
+    }
+    if "nano-banana-2" in NANO_BANANA_MODEL:
+        inp["resolution"] = config.NANO_BANANA_RESOLUTION
+    output = _client.run(NANO_BANANA_MODEL, input=inp)
+    return _read_output(output)
+
+
+def nano_face_swap(frame: bytes, face_png: bytes, retries: int = 2) -> bytes | None:
+    """Диффузионный face-swap вторым проходом nano-banana (рек. №2): переносит
+    реальное лицо гостя на выбранный кадр в полном разрешении. None при неудаче —
+    вызывающий тогда отдаёт исходный кадр (паттерн `swapped or out`)."""
+    if not _client or not frame or not face_png:
+        return None
+    import time
+    for attempt in range(retries):
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            fut = pool.submit(_nano_face_swap_sync, frame, face_png)
+            try:
+                return fut.result(timeout=_IMAGE_TIMEOUT)
+            except Exception as exc:  # noqa: BLE001
+                if attempt < retries - 1:
+                    wait = 25 if "429" in str(exc) else 5
+                    print(f"[replicate] nano-swap сбой ({str(exc)[:50]}…), жду {wait}с")
+                    time.sleep(wait); continue
+                print(f"[replicate] nano-swap failed/timeout: {exc}")
+                return None
+    return None
+
+
 def _face_swap_sync(target: bytes, face: bytes) -> bytes | None:
     if not _client:
         return None
