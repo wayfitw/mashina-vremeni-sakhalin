@@ -30,8 +30,16 @@ import config
 import gemini_client
 import compositor
 import facecrop
+import face_metric
 
 app = FastAPI(title="Машина времени: Сахалин — прототип")
+
+
+@app.on_event("startup")
+def _warm_face_metric():
+    # прогрев ArcFace-модели, чтобы первый гость не ждал загрузку onnx
+    if config.FACE_GATE_ENABLED or config.FACE_RANK_ENABLED:
+        face_metric.available()
 
 LOCATIONS = json.loads((config.BASE_DIR / "locations.json").read_text(encoding="utf-8"))
 FRONTEND = config.BASE_DIR.parent / "frontend"
@@ -58,6 +66,14 @@ def locations():
     ]
 
 
+@app.post("/api/check-photo")
+async def check_photo(photo: UploadFile = File(...)):
+    """Живая проверка кадра до генерации (для экрана съёмки): ok + причина."""
+    data = await photo.read()
+    ok, reason, info = face_metric.check_input(data)
+    return {"ok": ok, "reason": reason, "info": info}
+
+
 @app.post("/api/generate")
 async def generate(location: str = Form(...), photo: UploadFile = File(...),
                    outfit: str = Form("male")):
@@ -66,6 +82,14 @@ async def generate(location: str = Form(...), photo: UploadFile = File(...),
         raise HTTPException(400, "Локация недоступна")
 
     guest_bytes = await photo.read()
+
+    # гейт входного фото: плохой кадр → просьба переснять, а не плохая карточка
+    if config.FACE_GATE_ENABLED:
+        ok, reason, info = face_metric.check_input(guest_bytes)
+        print(f"[gate] ok={ok} {info}")
+        if not ok:
+            raise HTTPException(422, reason)
+
     # два кадра гостя: крупное лицо (для точных черт) + корпус (для телосложения)
     face_png, body_png = facecrop.crops(guest_bytes)
 
@@ -106,12 +130,23 @@ async def generate(location: str = Form(...), photo: UploadFile = File(...),
         except gemini_client.GenerationError as exc:
             raise HTTPException(502, str(exc))
 
+    # ранжирование по сходству с гостем (ArcFace): лучший кадр — первым; слабые
+    # (ниже порога) отбраковываются, но хотя бы один вариант всегда остаётся.
+    sims: list = [None] * len(variants)
+    if config.FACE_RANK_ENABLED:
+        ranking = face_metric.rank_variants(guest_bytes, variants)
+        if ranking:
+            kept = [(i, s) for i, s in ranking if s >= config.FACE_SIM_THRESHOLD] or ranking[:1]
+            variants = [variants[i] for i, _ in kept]
+            sims = [round(s, 3) for _, s in kept]
+            print(f"[rank] similarities: {[round(s, 3) for _, s in ranking]} → оставлено {len(variants)}")
+
     session_id = uuid.uuid4().hex[:8]
     out = []
     for i, data in enumerate(variants):
         name = f"gen_{session_id}_{i}.png"
         _save(data, name)
-        out.append({"id": name, "url": f"/files/{name}"})
+        out.append({"id": name, "url": f"/files/{name}", "similarity": sims[i] if i < len(sims) else None})
 
     return {"session": session_id, "location": loc["title"], "variants": out,
             "stub_mode": config.STUB_MODE}

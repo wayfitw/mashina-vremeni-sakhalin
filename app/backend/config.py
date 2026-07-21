@@ -83,5 +83,16 @@ PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "http://localhost:8000").rst
 # Срок хранения цифровой версии (часы) — для автоудаления (в проде)
 DIGITAL_TTL_HOURS = int(os.environ.get("DIGITAL_TTL_HOURS", "72"))
 
+# --- ArcFace-метрика сходства лиц (insightface) — рекомендация №1 ---
+FACE_MODEL = os.environ.get("FACE_MODEL", "buffalo_l").strip()
+# Гейт входного фото гостя (размер лица, один в кадре, резкость) до генерации.
+FACE_GATE_ENABLED = os.environ.get("FACE_GATE", "1").strip() in ("1", "true", "yes")
+# Ранжирование/отбраковка сгенерированных вариантов по сходству с гостем.
+FACE_RANK_ENABLED = os.environ.get("FACE_RANK", "1").strip() in ("1", "true", "yes")
+FACE_MIN_PX = int(os.environ.get("FACE_MIN_PX", "512"))          # мин. ширина лица (реком. 512)
+FACE_MAX_YAW = float(os.environ.get("FACE_MAX_YAW", "25"))       # макс. поворот головы, град
+FACE_MIN_BLUR = float(os.environ.get("FACE_MIN_BLUR", "40"))     # мин. резкость (var лапласиана)
+FACE_SIM_THRESHOLD = float(os.environ.get("FACE_SIM_THRESHOLD", "0.45"))  # порог отбраковки варианта
+
 # Демо-режим (заглушки) — только когда НИ ОДИН провайдер не настроен
 STUB_MODE = not (bool(GEMINI_API_KEY) or bool(REPLICATE_API_TOKEN))
