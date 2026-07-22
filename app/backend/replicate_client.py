@@ -166,6 +166,36 @@ def nano_face_swap(frame: bytes, face_png: bytes, retries: int = 2) -> bytes | N
     return None
 
 
+# GFPGAN — реставрация/лёгкая бьютификация лица (для входа с вебкамеры: шум, блюр, низкое разрешение)
+GFPGAN_MODEL = "tencentarc/gfpgan:0fbacf7afc6c144e5be9767cff80f25aff23e52b0708f17e20f9879b2f21516c"
+
+
+def _enhance_face_sync(image_bytes: bytes) -> bytes | None:
+    if not _client:
+        return None
+    output = _client.run(GFPGAN_MODEL, input={"img": _data_uri(image_bytes), "scale": 2, "version": "v1.4"})
+    return _read_output(output)
+
+
+def enhance_face(image_bytes: bytes, retries: int = 2) -> bytes | None:
+    """GFPGAN: чистит и слегка улучшает лицо с вебкам-кадра (шум/блюр/низкое разрешение).
+    None при ошибке — вызывающий тогда использует исходное фото."""
+    if not _client or not image_bytes:
+        return None
+    import time
+    for attempt in range(retries):
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            fut = pool.submit(_enhance_face_sync, image_bytes)
+            try:
+                return fut.result(timeout=120)
+            except Exception as exc:  # noqa: BLE001
+                if attempt < retries - 1:
+                    time.sleep(5); continue
+                print(f"[replicate] gfpgan failed/timeout: {exc}")
+                return None
+    return None
+
+
 def _face_swap_sync(target: bytes, face: bytes) -> bytes | None:
     if not _client:
         return None

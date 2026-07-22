@@ -69,6 +69,10 @@ NANO_BANANA_RESOLUTION = os.environ.get("NANO_BANANA_RESOLUTION", "2K").strip()
 # включать только как аварийный вариант, если генерация теряет сходство.
 FACE_SWAP_ENABLED = os.environ.get("FACE_SWAP", "0").strip() in ("1", "true", "yes")
 
+# Улучшение входного фото гостя через GFPGAN (для вебкамеры: чистит шум/блюр,
+# делает лицо резче и красивее). Небольшой минус к ArcFace, но картинка лучше.
+FACE_ENHANCE_ENABLED = os.environ.get("FACE_ENHANCE", "0").strip() in ("1", "true", "yes")
+
 # Режим генерации:
 #   composite — фон НЕ генерируется: генерим только человека, вырезаем и вклеиваем
 #               в эталон (фон гарантированно неизменен). Основной режим.

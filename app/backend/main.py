@@ -90,6 +90,14 @@ async def generate(location: str = Form(...), photo: UploadFile = File(...),
         if not ok:
             raise HTTPException(422, reason)
 
+    # улучшение входа с вебкамеры: GFPGAN чистит шум/блюр и делает лицо красивее
+    if config.FACE_ENHANCE_ENABLED:
+        import replicate_client
+        enhanced = replicate_client.enhance_face(guest_bytes)
+        if enhanced:
+            guest_bytes = enhanced
+            print("[enhance] лицо улучшено через GFPGAN")
+
     # два кадра гостя: крупное лицо (для точных черт) + корпус (для телосложения)
     face_png, body_png = facecrop.crops(guest_bytes)
 
@@ -108,6 +116,7 @@ async def generate(location: str = Form(...), photo: UploadFile = File(...),
 
     # промпты с разными нарядами по выбранному образу (девушкам — розовый/белый)
     outfits = config.OUTFITS.get(outfit, [config.DEFAULT_OUTFIT])
+    gender = "young woman" if outfit == "female" else "young man"
 
     if config.GEN_MODE == "composite" and reference:
         # основной режим: фон не генерируется — человек вклеивается в эталон
@@ -122,7 +131,7 @@ async def generate(location: str = Form(...), photo: UploadFile = File(...),
         if not variants:
             raise HTTPException(502, "Генерация не удалась (composite). Попробуйте ещё раз.")
     else:
-        prompts = [loc["prompt"].replace("{OUTFIT}", outfits[i % len(outfits)])
+        prompts = [loc["prompt"].replace("{OUTFIT}", outfits[i % len(outfits)]).replace("{GENDER}", gender)
                    for i in range(config.VARIANTS)]
         try:
             variants = gemini_client.generate_variants(prompts, face_png, reference,

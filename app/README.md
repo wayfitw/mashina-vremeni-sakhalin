@@ -1,54 +1,67 @@
 # «Машина времени: Сахалин» — прототип
 
-Рабочий сквозной прототип (Этап 1–2): фото гостя → генерация 2–3 вариантов (Gemini «Nano Banana») → выбор → карточка с логотипами партнёров → печать (CUPS) + QR.
+Сквозной AI фото-киоск: фото гостя → генерация 2–3 фотореалистичных вариантов в локации Сахалина → выбор → карточка с логотипами партнёров → печать (CUPS) + QR.
 
-Сейчас включена одна локация — **маяк Анива** (остальные в `locations.json`, флаг `enabled`).
+Сейчас включена одна локация — **маяк Анива** (остальные в `backend/locations.json`, флаг `enabled`).
 
-## Запуск
+## Быстрый запуск
 
-```bash
-./run.sh
+**Windows:**
+```bat
+app\run.bat
 ```
-Открыть в браузере: **http://localhost:8000**
 
-Для iPad: открыть тот же адрес по IP Mac в сети (напр. `http://192.168.x.x:8000`), Safari → «Гид-доступ».
+**macOS / Linux:**
+```bash
+app/run.sh
+```
 
-## Настройка (backend/.env)
+Скрипт сам создаёт venv, ставит зависимости и поднимает сервер. Открыть в браузере: **http://localhost:8000**
 
-Скопируй `backend/.env.example` → `backend/.env` и заполни:
+Требуется **Python 3.10+** и интернет (при первом запуске автоматически скачиваются модели insightface `buffalo_l` для метрики сходства лиц).
+
+## Ключи (backend/.env)
+
+Скопируй `backend/.env.example` → `backend/.env` (скрипт делает это сам при первом запуске) и заполни:
 
 | Параметр | Назначение |
 |---|---|
-| `GEMINI_API_KEY` | Ключ из [Google AI Studio](https://aistudio.google.com/apikey). **Без ключа — демо-режим** (заглушки из фото, флоу работает). |
-| `GEMINI_IMAGE_MODEL` | `gemini-2.5-flash-image` (Nano Banana) или `gemini-3-pro-image-preview` (Nano Banana Pro). |
+| `REPLICATE_API_TOKEN` | **Основной провайдер генерации.** Токен из [replicate.com/account](https://replicate.com/account/api-tokens). Модель по умолчанию — `bytedance/seedream-4.5` (лучшее сходство лица по A/B). **Без токена — демо-режим** (заглушки из фото, флоу работает). Генерация платная (оплата с баланса Replicate). |
+| `NANO_BANANA_MODEL` | Модель генерации на Replicate. По умолчанию `bytedance/seedream-4.5:<version>`. Альтернатива: `google/nano-banana-2`. |
+| `FACE_SWAP` | `1` — переносить настоящее лицо гостя (inswapper) поверх генерации для точного сходства; `0` — только генерация. |
+| `GEMINI_API_KEY` | Необязательно. Запасной провайдер Google (нужен биллинг). |
 | `VARIANTS` | Сколько вариантов генерировать (по умолчанию 3). |
-| `PRINT_ENABLED` | `0` — карточка только сохраняется; `1` — реально печатать через `lpr`. |
-| `PRINT_PRINTER` | Имя принтера из `lpstat -p` (пусто = принтер по умолчанию). |
+| `PRINT_ENABLED` / `PRINT_PRINTER` | Печать через `lpr` (CUPS, только macOS/Linux). `0` = карточка только сохраняется. |
+| `PUBLIC_BASE_URL` | База для QR. Локально `http://localhost:8000`. |
 
-## Референс локации (для лучшего качества)
+> Порт по умолчанию — **8000**. Если занят, поменяй в `run.bat`/`run.sh` и в `PUBLIC_BASE_URL`.
 
-Положи фото реального маяка Анива в `backend/assets/references/aniva.jpg` — оно пойдёт вторым изображением в image-to-image. Без него генерация идёт по текстовому промпту.
+## Как устроена генерация
 
-## Логотипы партнёров
+1. Фото гостя проходит **гейт качества** (insightface): лицо от N px, поворот, резкость, одно лицо в кадре — иначе просьба переснять.
+2. Вырезаются два кадра гостя: лицо (для черт) + корпус (для телосложения).
+3. Вместе с эталонным фото локации (`backend/assets/references/aniva_clean.png`) уходят в модель (Seedream 4.5).
+4. Опционально face-swap (реальное лицо 1:1), затем варианты **ранжируются по сходству** (ArcFace) — гость видит лучшие.
+5. Выбор → карточка с логотипами + QR.
 
-`backend/assets/logos/*.png` (до 3, с прозрачностью). Сейчас — плейсхолдеры `01_partner.png`, `02_partner.png`. Логотипы накладываются **детерминированно** (не генерируются ИИ — ADR-1).
+## Фоновое видео (необязательно)
+
+`frontend/media/intro.mp4` — зацикленный фон сайта — **не в репозитории** (большой файл, в `.gitignore`). Без него сайт работает, фон — тёмный/постер. Чтобы вернуть: положи свой `intro.mp4` в `frontend/media/`.
 
 ## Структура
 
 ```
 backend/
-  main.py           FastAPI: /api/generate, /api/card, /api/print, /d/{id}
-  gemini_client.py  шлюз генерации (Gemini + stub), 2–3 варианта параллельно
-  compositor.py     сборка карточки (фото + логотипы + подпись)
-  config.py         конфигурация из .env
-  locations.json    локации и промпты
-  assets/           references / logos / output
+  main.py            FastAPI: /api/generate, /api/card, /api/print, /d/{id}
+  gemini_client.py   шлюз генерации (цепочка провайдеров + stub)
+  replicate_client.py Replicate: Seedream/nano-banana, face-swap
+  facecrop.py        кропы лица/корпуса
+  face_metric.py     ArcFace: гейт входа + ранжирование по сходству
+  compositor.py      сборка карточки (фото + логотипы + подпись)
+  person_composite.py альтернативный composite-режим (вклейка в реальное фото)
+  config.py          конфигурация из .env
+  locations.json     локации и промпты
+  assets/            references / logos / output
 frontend/
-  index.html app.js styles.css   киоск-флоу под iPad
+  index.html app.js styles.css   киоск-флоу
 ```
-
-## Что дальше (соответствие задачам)
-- Вставить `GEMINI_API_KEY`, протестировать реальную генерацию на маяке — TASK-0006.
-- Зафиксировать лучший промпт по итогам теста — TASK-0003.
-- Включить остальные локации (`enabled: true`) — TASK-0204.
-- Реальная печать на сублимационном принтере — TASK-0303.
