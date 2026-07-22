@@ -90,6 +90,10 @@ async def generate(location: str = Form(...), photo: UploadFile = File(...),
         if not ok:
             raise HTTPException(422, reason)
 
+    # СЫРОЙ кроп лица для face-swap — истинная идентичность гостя, ДО GFPGAN
+    # (GFPGAN «причёсывает» лицо и снижает сходство, поэтому свап опирается на сырое)
+    face_raw, _ = facecrop.crops(guest_bytes)
+
     # улучшение входа с вебкамеры: GFPGAN чистит шум/блюр и делает лицо красивее
     if config.FACE_ENHANCE_ENABLED:
         import replicate_client
@@ -135,7 +139,7 @@ async def generate(location: str = Form(...), photo: UploadFile = File(...),
                    for i in range(config.VARIANTS)]
         try:
             variants = gemini_client.generate_variants(prompts, face_png, reference,
-                                                       body_png=body_png)
+                                                       body_png=body_png, swap_face=face_raw)
         except gemini_client.GenerationError as exc:
             raise HTTPException(502, str(exc))
 

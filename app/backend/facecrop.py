@@ -37,8 +37,8 @@ def crops(image_bytes: bytes) -> tuple[bytes, bytes]:
     if len(faces):
         x, y, w, h = max(faces, key=lambda f: f[2] * f[3])
         cx, cy = x + w / 2, y + h / 2
-        # 1) крупное лицо (голова целиком + немного плеч)
-        fw = max(w * 2.0, 512 if W >= 512 else W)
+        # 1) крупное лицо: теснее кадрируем (лицо крупнее в референсе → выше сходство)
+        fw = max(w * 1.7, 512 if W >= 512 else W)
         fh = fw * 1.25
         face_box = (max(0, int(cx - fw / 2)), max(0, int(cy - fh * 0.45)),
                     min(W, int(cx + fw / 2)), min(H, int(cy + fh * 0.55)))
@@ -46,6 +46,13 @@ def crops(image_bytes: bytes) -> tuple[bytes, bytes]:
     else:
         # лицо не нашли — верхняя центральная треть
         face_img = img.crop((int(W * 0.25), 0, int(W * 0.75), int(H * 0.5)))
+
+    # крупный резкий эталон лица: апскейл до мин. 1024 px по длинной стороне
+    # (рек. ⑤ — реф от 1024 px заметно улучшает сходство)
+    _MIN_FACE = 1024
+    if max(face_img.size) < _MIN_FACE:
+        _s = _MIN_FACE / max(face_img.size)
+        face_img = face_img.resize((int(face_img.width * _s), int(face_img.height * _s)), Image.LANCZOS)
 
     body_png = crop_to_face(image_bytes)          # корпус по пояс (существующая логика)
     fbuf = io.BytesIO(); face_img.save(fbuf, format="PNG")
