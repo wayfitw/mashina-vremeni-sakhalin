@@ -102,6 +102,14 @@ DIGITAL_TTL_HOURS = int(os.environ.get("DIGITAL_TTL_HOURS", "72"))
 
 # --- ArcFace-метрика сходства лиц (insightface) — рекомендация №1 ---
 FACE_MODEL = os.environ.get("FACE_MODEL", "buffalo_l").strip()
+# Какие модули insightface грузить. По умолчанию только нужные — экономит RAM
+# (важно на VPS с 2 GB). Минимальный набор для работы: detection,recognition
+# (без landmark_3d_68 отключится только проверка поворота головы).
+FACE_MODULES = [m.strip() for m in os.environ.get(
+    "FACE_MODULES", "detection,recognition,landmark_3d_68").split(",") if m.strip()]
+# Размер входа детектора: меньше — меньше памяти и быстрее на слабом CPU.
+_ds = int(os.environ.get("FACE_DET_SIZE", "640"))
+FACE_DET_SIZE = (_ds, _ds)
 # Гейт входного фото гостя (размер лица, один в кадре, резкость) до генерации.
 FACE_GATE_ENABLED = os.environ.get("FACE_GATE", "1").strip() in ("1", "true", "yes")
 # Ранжирование/отбраковка сгенерированных вариантов по сходству с гостем.

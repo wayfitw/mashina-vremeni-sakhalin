@@ -35,8 +35,12 @@ def _get_app():
             if _app is None:
                 try:
                     from insightface.app import FaceAnalysis
-                    app = FaceAnalysis(name=config.FACE_MODEL, providers=["CPUExecutionProvider"])
-                    app.prepare(ctx_id=-1, det_size=(640, 640))
+                    # грузим только нужные модули (экономия RAM на малых VPS):
+                    # detection — bbox/скор, recognition — эмбеддинг, landmark_3d_68 — поза (yaw).
+                    # genderage и 2d106det не используются вовсе.
+                    app = FaceAnalysis(name=config.FACE_MODEL, providers=["CPUExecutionProvider"],
+                                       allowed_modules=config.FACE_MODULES)
+                    app.prepare(ctx_id=-1, det_size=config.FACE_DET_SIZE)
                     _app = app
                 except Exception as exc:  # noqa: BLE001 — метрика не должна ронять сервис
                     print(f"[face_metric] инициализация не удалась: {exc}")
