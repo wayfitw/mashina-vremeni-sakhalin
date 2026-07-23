@@ -90,6 +90,14 @@ async def generate(location: str = Form(...), photo: UploadFile = File(...),
         if not ok:
             raise HTTPException(422, reason)
 
+    # убираем тени с лица с вебки: выравниваем свет ДО кропов и генерации
+    # (правится только освещение, черты лица не меняются)
+    if config.FACE_DESHADOW_ENABLED:
+        dz = facecrop.deshadow(guest_bytes, config.FACE_DESHADOW_CLIP)
+        if dz:
+            guest_bytes = dz
+            print("[deshadow] свет на лице выровнен")
+
     # СЫРОЙ кроп лица для face-swap — истинная идентичность гостя, ДО GFPGAN
     # (GFPGAN «причёсывает» лицо и снижает сходство, поэтому свап опирается на сырое)
     face_raw, _ = facecrop.crops(guest_bytes)

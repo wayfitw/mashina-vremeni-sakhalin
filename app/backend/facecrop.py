@@ -22,6 +22,25 @@ except Exception:  # noqa: BLE001
     _CASCADE = None
 
 
+def deshadow(image_bytes: bytes, clip: float = 2.0) -> bytes | None:
+    """Выравнивает освещение кадра с вебки: поднимает тени, гасит пересветы
+    (CLAHE по каналу яркости L). Черты лица НЕ меняются — правится только свет,
+    поэтому сходство сохраняется, и ничего не «замыливается»."""
+    if cv2 is None:
+        return None
+    try:
+        img = ImageOps.exif_transpose(Image.open(io.BytesIO(image_bytes))).convert("RGB")
+        lab = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2LAB)
+        l, a, b = cv2.split(lab)
+        l = cv2.createCLAHE(clipLimit=clip, tileGridSize=(8, 8)).apply(l)
+        out = cv2.cvtColor(cv2.merge((l, a, b)), cv2.COLOR_LAB2RGB)
+        buf = io.BytesIO(); Image.fromarray(out).save(buf, format="PNG")
+        return buf.getvalue()
+    except Exception as exc:  # noqa: BLE001
+        print(f"[deshadow] failed: {exc}")
+        return None
+
+
 def crops(image_bytes: bytes) -> tuple[bytes, bytes]:
     """Возвращает (крупное_лицо, корпус_по_пояс) как два PNG.
     Лицо отдельно — чтобы модель точно скопировала черты; корпус — чтобы видела

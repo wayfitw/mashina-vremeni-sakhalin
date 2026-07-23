@@ -58,11 +58,10 @@ REPLICATE_API_TOKEN = os.environ.get("REPLICATE_API_TOKEN", "").strip()
 # Модель генерации на Replicate. По итогам A/B-теста (18.07.2026) —
 # google/nano-banana-2 в 2K: лучшее лицо БЕЗ face-swap (см. _ab_*.jpg).
 # Альтернативы: bytedance/seedream-4, google/nano-banana-pro.
-# По A/B с ArcFace-метрикой (21.07.2026) bytedance/seedream-4.5 держит лицо
-# заметно лучше nano-banana (raw 0.74 vs 0.31; со свапом 0.85 vs 0.82) — дефолт.
-NANO_BANANA_MODEL = os.environ.get(
-    "NANO_BANANA_MODEL",
-    "bytedance/seedream-4.5:9fe3b8282dcb9d9063b05e33210a1432801f7c5a6641db944baefcec4886761a").strip()
+# По итогам тестов 23.07.2026 выбран google/nano-banana-pro: по ArcFace он на
+# уровне seedream-4.5 (0.848 vs 0.851), но визуально даёт лучший результат.
+# Альтернатива (быстрее ~2x): bytedance/seedream-4.5:9fe3b8282dcb9d9063b05e33210a1432801f7c5a6641db944baefcec4886761a
+NANO_BANANA_MODEL = os.environ.get("NANO_BANANA_MODEL", "google/nano-banana-pro").strip()
 NANO_BANANA_RESOLUTION = os.environ.get("NANO_BANANA_RESOLUTION", "2K").strip()
 
 # Face-swap (inswapper) работает в 128×128 → «восковое» лицо. ВЫКЛЮЧЕН по умолчанию;
@@ -72,6 +71,16 @@ FACE_SWAP_ENABLED = os.environ.get("FACE_SWAP", "0").strip() in ("1", "true", "y
 # Улучшение входного фото гостя через GFPGAN (для вебкамеры: чистит шум/блюр,
 # делает лицо резче и красивее). Небольшой минус к ArcFace, но картинка лучше.
 FACE_ENHANCE_ENABLED = os.environ.get("FACE_ENHANCE", "0").strip() in ("1", "true", "yes")
+
+# Доработка после свапа: лёгкий GFPGAN-блендинг (красивее кожа, сходство почти держится).
+SWAP_REFINE_ENABLED = os.environ.get("SWAP_REFINE", "0").strip() in ("1", "true", "yes")
+SWAP_REFINE_ALPHA = float(os.environ.get("SWAP_REFINE_ALPHA", "0.3"))  # доля GFPGAN в бленде
+# Резкость после свапа (unsharp): чётче контуры губ/лица, идентичность не страдает.
+SWAP_SHARPEN_ENABLED = os.environ.get("SWAP_SHARPEN", "0").strip() in ("1", "true", "yes")
+SWAP_SHARPEN_PERCENT = int(os.environ.get("SWAP_SHARPEN_PERCENT", "70"))
+# Выравнивание света на входном кадре (убирает тени с лица с вебки), CLAHE.
+FACE_DESHADOW_ENABLED = os.environ.get("FACE_DESHADOW", "0").strip() in ("1", "true", "yes")
+FACE_DESHADOW_CLIP = float(os.environ.get("FACE_DESHADOW_CLIP", "2.0"))
 
 # Режим генерации:
 #   composite — фон НЕ генерируется: генерим только человека, вырезаем и вклеиваем

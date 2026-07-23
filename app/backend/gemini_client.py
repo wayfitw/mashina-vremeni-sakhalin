@@ -94,7 +94,18 @@ def _one_variant(prompt: str, guest_png: bytes, reference: Optional[bytes],
             # чтобы свап опирался на истинную идентичность → выше сходство.
             if config.FACE_SWAP_ENABLED:
                 swapped = replicate_client.face_swap(out, swap_face or guest_png)
-                return swapped or out
+                if not swapped:
+                    return out
+                # доработка: лёгкий GFPGAN-блендинг — красивее кожа, но мылит рот
+                # (двоение двух по-разному нарисованных лиц), поэтому по умолчанию выкл
+                if config.SWAP_REFINE_ENABLED:
+                    refined = replicate_client.refine_swap(swapped, config.SWAP_REFINE_ALPHA)
+                    swapped = refined or swapped
+                # резкость: чётче контуры губ/лица, лицо не перерисовывается
+                if config.SWAP_SHARPEN_ENABLED:
+                    sharp = replicate_client.sharpen_result(swapped, config.SWAP_SHARPEN_PERCENT)
+                    swapped = sharp or swapped
+                return swapped
             return out
         primary_err = GenerationError("Nano Banana (Replicate) не вернул изображение.")
 

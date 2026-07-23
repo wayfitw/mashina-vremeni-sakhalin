@@ -196,6 +196,42 @@ def enhance_face(image_bytes: bytes, retries: int = 2) -> bytes | None:
     return None
 
 
+def sharpen_result(image_bytes: bytes, percent: int = 70) -> bytes | None:
+    """Локальная резкость (unsharp mask) после свапа: чётче контуры лица/губ.
+    Лицо НЕ перерисовывается → идентичность сохраняется 1:1 и нет «двоения»,
+    которое давал блендинг с GFPGAN."""
+    try:
+        import io
+        from PIL import Image, ImageFilter
+        img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        img = img.filter(ImageFilter.UnsharpMask(radius=2, percent=max(0, percent), threshold=3))
+        buf = io.BytesIO(); img.save(buf, format="PNG")
+        return buf.getvalue()
+    except Exception as exc:  # noqa: BLE001
+        print(f"[sharpen] failed: {exc}")
+        return None
+
+
+def refine_swap(image_bytes: bytes, alpha: float = 0.3) -> bytes | None:
+    """Доработка после свапа: GFPGAN чистит/красивит лицо, но «перерисовывает» →
+    блендим его лишь на alpha (30%) с оригиналом свапа — чистим кожу, сохраняя
+    сходство (ArcFace: чистый свап 0.835 → бленд 30% 0.808 при заметно красивее)."""
+    gf = enhance_face(image_bytes)
+    if not gf:
+        return None
+    try:
+        import io
+        from PIL import Image
+        base = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        enh = Image.open(io.BytesIO(gf)).convert("RGB").resize(base.size, Image.LANCZOS)
+        out = Image.blend(base, enh, max(0.0, min(1.0, alpha)))
+        buf = io.BytesIO(); out.save(buf, format="PNG")
+        return buf.getvalue()
+    except Exception as exc:  # noqa: BLE001
+        print(f"[refine] blend failed: {exc}")
+        return None
+
+
 def _face_swap_sync(target: bytes, face: bytes) -> bytes | None:
     if not _client:
         return None
