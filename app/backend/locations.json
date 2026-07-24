@@ -43,5 +43,18 @@
     "enabled": false,
     "reference": "klokovsky.jpg",
     "prompt": "Place the PERSON from the portrait photorealistically at Klokovsky Waterfall on Sakhalin — a wide waterfall cascading down a rocky ledge toward the sea shore, wet rocks, lush greenery and mist. Preserve their identity exactly. Vertical DSLR travel photo. No text, logos, frames, extra people or distortions."
+  },
+  "spg_prigorodnoe": {
+    "id": "spg_prigorodnoe",
+    "title": "СПГ. Пригородное",
+    "subtitle": "Время для созидания и гармонии",
+    "enabled": true,
+    "reference": "spg_prigorodnoe.jpg",
+    "anchor": {
+      "cx": 0.62,
+      "bottom": 0.99,
+      "height": 0.78
+    },
+    "prompt": "Photorealistic photo editing: place the person from image 1 into the base scene from image 3. Preserve their recognisable facial features, gender, hairstyle, skin tone and overall appearance. Match their natural body build from image 2.\nImage 3 is the BASE photograph: the Prigorodnoye LNG plant on Sakhalin — a tall flare stack with a burning flame and dark smoke, industrial buildings, green hills and mountains under a heavy overcast sky, wide asphalt area in the foreground. Keep this background, camera angle, framing, perspective and composition unchanged. Place the person standing on the asphalt in the right foreground, shown from mid-thigh up at a believable scale, with correct natural human proportions and the head never enlarged; the flare stack stays clearly visible on the left behind them.\nThe person is FULLY CLOTHED in a plain clean white hoodie and a white baseball cap. Relaxed confident pose, hands in the hoodie pocket, calm friendly expression. EYES: both eyes symmetric, fully open, correct natural shape with defined eyelids, iris and pupil; never squinting, uneven or melted. MOUTH: lips closed in a light natural expression, well-formed, symmetric, sharply defined; never smeared, chewed, doubled or warped.\nMatch the scene lighting exactly: soft diffused overcast daylight, cool muted colours, moody grey sky, no harsh shadows; keep the face evenly lit.\nThe ENTIRE image must read as a REAL DOCUMENTARY PHOTOGRAPH, never a 3D render or illustration: authentic industrial metal and concrete texture, real grass and rock, natural photographic grain and micro-contrast. Ultra-realistic professional DSLR quality, sharp focus, natural skin texture, correct anatomy and seamless blending. Remove tattoos and blemishes. No nudity, no text, no logos or lettering on clothing, no extra people, no background changes, no blur, distortion, plastic skin, AI artifacts or cut-out appearance."
   }
 }
