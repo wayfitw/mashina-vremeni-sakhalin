@@ -36,8 +36,8 @@ FOOTER_COL = (74, 92, 140)        # приглушённый синий футе
 def _font(kind: str, size: int):
     """Надёжный подбор шрифта: бандл в assets/fonts → системный Linux(DejaVu) → Windows(Arial)."""
     table = {
-        # подпись — элегантный тонкий рукописный с кириллицей (как на макете)
-        "script": [FONTS / "MarckScript.ttf", FONTS / "Caveat.ttf",
+        # подпись — рукописный с кириллицей (Caveat, как согласовано)
+        "script": [FONTS / "Caveat.ttf", FONTS / "MarckScript.ttf",
                    "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Italic.ttf",
                    "C:/Windows/Fonts/segoesc.ttf", "C:/Windows/Fonts/ariali.ttf"],
         # футер — классический наборный курсив с засечками
@@ -143,9 +143,9 @@ def build_card(generated_png: bytes,
             card.paste(s, (x, y), s)
             x += s.width + gap
 
-    # --- футер --- (наборный курсив с засечками, как на макете)
+    # --- футер --- (рукописный Caveat, как было согласовано)
     if footer:
-        f_foot = _font("italic", 34)
+        f_foot = _font("script", 44)
         fw = _text_w(draw, footer, f_foot)
         draw.text(((CARD_W - fw) // 2, footer_y), footer, font=f_foot, fill=FOOTER_COL)
 
