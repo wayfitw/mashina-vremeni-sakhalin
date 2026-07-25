@@ -174,11 +174,14 @@ async def generate(location: str = Form(...), photo: UploadFile = File(...),
 
 
 @app.post("/api/card")
-def make_card(variant_id: str = Form(...)):
+def make_card(variant_id: str = Form(...), location: str = Form("")):
     src = config.OUTPUT / variant_id
     if not src.exists():
         raise HTTPException(404, "Вариант не найден")
-    card = compositor.build_card(src.read_bytes())
+    loc = LOCATIONS.get(location, {})
+    card = compositor.build_card(src.read_bytes(),
+                                 caption_lines=loc.get("card_caption", []),
+                                 footer=loc.get("card_footer", ""))
     card_id = f"card_{uuid.uuid4().hex[:8]}.png"
     _save(card, card_id)
 

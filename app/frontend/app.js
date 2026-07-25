@@ -120,6 +120,7 @@ async function chooseVariant(v, imgEl) {
   show('loading');
   $('#loading-note').textContent = 'Собираем фото-карточку с логотипами партнёров…';
   const fd = new FormData(); fd.append('variant_id', v.id);
+  if (state.location) fd.append('location', state.location);
   try {
     const r = await fetch('/api/card', { method: 'POST', body: fd });
     const data = await r.json();
