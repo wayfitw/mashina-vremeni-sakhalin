@@ -40,9 +40,16 @@ VARIANTS = int(os.environ.get("VARIANTS", "3"))
 # Образы (одежда) по выбору гостя — подставляются в промпт вместо {OUTFIT}.
 # Для нескольких вариантов перебираются по кругу (девушкам — розовый и белый).
 # Единый мерч на всех локациях (решение заказчика, как на макете):
-# белое худи + белая бейсболка. Одинаково для мужского и женского образа.
-_MERCH_OUTFIT = ("a plain clean white hoodie, a plain white baseball cap, "
-                 "neutral light trousers and clean white sneakers")
+# белое худи с принтом «ГОРЫ ЗОВУТ / САХАЛИН ОТВЕЧАЕТ» + белая бейсболка
+# с логотипом «САХАЛИН». Одинаково для мужского и женского образа.
+_MERCH_OUTFIT = (
+    'a clean white hoodie with a small blue skier emblem and below it the blue Cyrillic '
+    'inscription "ГОРЫ ЗОВУТ" and "САХАЛИН ОТВЕЧАЕТ" printed in two neat centered lines of '
+    'capital letters on the chest, and a white baseball cap with a small blue shield-shaped '
+    'lighthouse logo and the blue Cyrillic word "САХАЛИН" printed on the front; neutral light '
+    'trousers and clean white sneakers. The Cyrillic prints must be spelled EXACTLY as given, '
+    'clean and legible, without extra or distorted letters'
+)
 OUTFITS = {
     "female": [_MERCH_OUTFIT],
     "male": [_MERCH_OUTFIT],
