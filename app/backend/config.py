@@ -45,11 +45,12 @@ VARIANTS = int(os.environ.get("VARIANTS", "3"))
 _MERCH_OUTFIT = (
     'a clean white hoodie with a small blue skier emblem and below it the blue Cyrillic '
     'inscription "ГОРЫ ЗОВУТ" and "САХАЛИН ОТВЕЧАЕТ" printed in two neat centered lines of '
-    'capital letters on the chest, and a white baseball cap with the САХАЛИН brand logo printed '
-    'on the front: a small navy-blue shield emblem with a thin white outline containing a '
-    'minimalist white lighthouse silhouette, and directly BELOW the shield the word "САХАЛИН" in '
-    'small navy capital letters; neutral light trousers and clean white sneakers. The Cyrillic '
-    'prints must be spelled EXACTLY as given, clean and legible, without extra or distorted letters'
+    'capital letters on the chest, and a white baseball cap. IMAGE 4 IS THE OFFICIAL BRAND LOGO — '
+    'reproduce it on the front of the cap EXACTLY as it appears in image 4 (same shield emblem, '
+    'white lighthouse silhouette and "САХАЛИН" wordmark beneath it, identical shapes and colours, '
+    'scaled down and following the curve of the fabric); do not redraw or invent a different '
+    'emblem, and do not use image 4 anywhere else. Neutral light trousers and clean white '
+    'sneakers. The Cyrillic prints must be spelled EXACTLY as given, clean and legible'
 )
 OUTFITS = {
     "female": [_MERCH_OUTFIT],
@@ -73,6 +74,12 @@ NANO_BANANA_RESOLUTION = os.environ.get("NANO_BANANA_RESOLUTION", "2K").strip()
 # Face-swap (inswapper) работает в 128×128 → «восковое» лицо. ВЫКЛЮЧЕН по умолчанию;
 # включать только как аварийный вариант, если генерация теряет сходство.
 FACE_SWAP_ENABLED = os.environ.get("FACE_SWAP", "0").strip() in ("1", "true", "yes")
+
+# Фирменный логотип бренда, который модель должна воспроизвести на мерче.
+# Передаётся в генерацию ОТДЕЛЬНЫМ изображением (описанием словами идентичности
+# не добиться — модель рисует «похожее»). Файл: assets/logos/04_sakhalin.png.
+BRAND_LOGO_ENABLED = os.environ.get("BRAND_LOGO", "1").strip() in ("1", "true", "yes")
+BRAND_LOGO_FILE = LOGOS / os.environ.get("BRAND_LOGO_FILE", "04_sakhalin.png")
 
 # Улучшение входного фото гостя через GFPGAN (для вебкамеры: чистит шум/блюр,
 # делает лицо резче и красивее). Небольшой минус к ArcFace, но картинка лучше.

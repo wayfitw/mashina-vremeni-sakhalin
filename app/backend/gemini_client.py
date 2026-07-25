@@ -73,7 +73,8 @@ def _stub_variant(guest_png: bytes, idx: int) -> bytes:
 # ---------- Публичный интерфейс ----------
 
 def _one_variant(prompt: str, guest_png: bytes, reference: Optional[bytes],
-                 body_png: Optional[bytes] = None, swap_face: Optional[bytes] = None) -> bytes:
+                 body_png: Optional[bytes] = None, swap_face: Optional[bytes] = None,
+                 brand_logo: Optional[bytes] = None) -> bytes:
     """Один вариант по цепочке провайдеров (ADR-6):
       1) Nano Banana via Replicate (multi-image: гость + эталон сцены) — основной;
       2) Gemini напрямую (если задан GEMINI_API_KEY);
@@ -88,6 +89,8 @@ def _one_variant(prompt: str, guest_png: bytes, reference: Optional[bytes],
             images.append(body_png)
         if reference:
             images.append(reference)
+        if brand_logo:
+            images.append(brand_logo)   # image 4 — фирменный знак для мерча
         out = replicate_client.nano_banana(images, prompt)
         if out:
             # face-swap: переносим лицо. swap_face — СЫРОЙ кроп (без GFPGAN),
@@ -125,7 +128,8 @@ def _one_variant(prompt: str, guest_png: bytes, reference: Optional[bytes],
 
 
 def generate_variants(prompts: List[str], guest_png: bytes, reference: Optional[bytes],
-                      body_png: Optional[bytes] = None, swap_face: Optional[bytes] = None) -> List[bytes]:
+                      body_png: Optional[bytes] = None, swap_face: Optional[bytes] = None,
+                      brand_logo: Optional[bytes] = None) -> List[bytes]:
     """Генерит по одному кадру на каждый промпт из списка (разные наряды/сиды).
     Ошибочные варианты пропускаются. swap_face — сырой кроп лица для face-swap."""
     if config.STUB_MODE:
@@ -136,7 +140,7 @@ def generate_variants(prompts: List[str], guest_png: bytes, reference: Optional[
     results: List[bytes] = []
     for p in prompts:
         try:
-            results.append(_one_variant(p, guest_png, reference, body_png, swap_face))
+            results.append(_one_variant(p, guest_png, reference, body_png, swap_face, brand_logo))
         except Exception as exc:  # noqa: BLE001 — единичный сбой не должен рушить запрос
             print(f"[gen] вариант не удался: {exc}")
 

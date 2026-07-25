@@ -145,9 +145,18 @@ async def generate(location: str = Form(...), photo: UploadFile = File(...),
     else:
         prompts = [loc["prompt"].replace("{OUTFIT}", outfits[i % len(outfits)]).replace("{GENDER}", gender)
                    for i in range(config.VARIANTS)]
+        # фирменный знак отдельным изображением: словами идентичности не добиться,
+        # модель должна видеть настоящий логотип и скопировать его на мерч
+        brand_logo = None
+        if config.BRAND_LOGO_ENABLED and config.BRAND_LOGO_FILE.exists():
+            limg = Image.open(config.BRAND_LOGO_FILE).convert("RGBA")
+            flat = Image.new("RGB", limg.size, (255, 255, 255))
+            flat.paste(limg, mask=limg.split()[3])          # прозрачность → белый фон
+            lbuf = io.BytesIO(); flat.save(lbuf, format="PNG"); brand_logo = lbuf.getvalue()
         try:
             variants = gemini_client.generate_variants(prompts, face_png, reference,
-                                                       body_png=body_png, swap_face=face_raw)
+                                                       body_png=body_png, swap_face=face_raw,
+                                                       brand_logo=brand_logo)
         except gemini_client.GenerationError as exc:
             raise HTTPException(502, str(exc))
 
