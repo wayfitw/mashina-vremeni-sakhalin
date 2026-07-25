@@ -41,6 +41,34 @@ def _warm_face_metric():
     if config.FACE_GATE_ENABLED or config.FACE_RANK_ENABLED:
         face_metric.available()
 
+
+@app.on_event("startup")
+def _start_output_cleanup():
+    """Автоочистка assets/output по DIGITAL_TTL_HOURS (на киоске диск не резиновый:
+    каждый гость оставляет ~5 МБ — кадры, карточка, QR и отладочные dbg_*)."""
+    import threading
+    import time
+
+    def _cleanup_loop():
+        ttl = config.DIGITAL_TTL_HOURS * 3600
+        while True:
+            try:
+                now = time.time()
+                removed = 0
+                for p in config.OUTPUT.iterdir():
+                    if p.name == ".gitkeep" or not p.is_file():
+                        continue
+                    if now - p.stat().st_mtime > ttl:
+                        p.unlink(missing_ok=True)
+                        removed += 1
+                if removed:
+                    print(f"[cleanup] удалено файлов старше {config.DIGITAL_TTL_HOURS}ч: {removed}")
+            except Exception as exc:  # noqa: BLE001 — уборка не должна ронять сервис
+                print(f"[cleanup] ошибка: {exc}")
+            time.sleep(3600)
+
+    threading.Thread(target=_cleanup_loop, daemon=True).start()
+
 LOCATIONS = json.loads((config.BASE_DIR / "locations.json").read_text(encoding="utf-8"))
 FRONTEND = config.BASE_DIR.parent / "frontend"
 
