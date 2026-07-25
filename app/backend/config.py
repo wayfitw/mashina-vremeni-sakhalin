@@ -71,6 +71,10 @@ REPLICATE_API_TOKEN = os.environ.get("REPLICATE_API_TOKEN", "").strip()
 NANO_BANANA_MODEL = os.environ.get("NANO_BANANA_MODEL", "google/nano-banana-pro").strip()
 NANO_BANANA_RESOLUTION = os.environ.get("NANO_BANANA_RESOLUTION", "2K").strip()
 
+# Качество для openai/gpt-image-*: high даёт >6 мин на кадр (для киоска слишком долго),
+# поэтому по умолчанию medium. Допустимо: low | medium | high | auto.
+GPT_IMAGE_QUALITY = os.environ.get("GPT_IMAGE_QUALITY", "medium").strip()
+
 # Face-swap (inswapper) работает в 128×128 → «восковое» лицо. ВЫКЛЮЧЕН по умолчанию;
 # включать только как аварийный вариант, если генерация теряет сходство.
 FACE_SWAP_ENABLED = os.environ.get("FACE_SWAP", "0").strip() in ("1", "true", "yes")
@@ -79,7 +83,9 @@ FACE_SWAP_ENABLED = os.environ.get("FACE_SWAP", "0").strip() in ("1", "true", "y
 # Передаётся в генерацию ОТДЕЛЬНЫМ изображением (описанием словами идентичности
 # не добиться — модель рисует «похожее»). Файл: assets/logos/04_sakhalin.png.
 BRAND_LOGO_ENABLED = os.environ.get("BRAND_LOGO", "1").strip() in ("1", "true", "yes")
-BRAND_LOGO_FILE = LOGOS / os.environ.get("BRAND_LOGO_FILE", "04_sakhalin.png")
+# brand_cap.png — версия знака для мерча: щит + «САХАЛИН», без подписи «МАЯК РОССИИ»
+# (имя не с цифры, чтобы не попасть в ряд логотипов партнёров на карточке).
+BRAND_LOGO_FILE = LOGOS / os.environ.get("BRAND_LOGO_FILE", "brand_cap.png")
 
 # Улучшение входного фото гостя через GFPGAN (для вебкамеры: чистит шум/блюр,
 # делает лицо резче и красивее). Небольшой минус к ArcFace, но картинка лучше.

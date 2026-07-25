@@ -85,12 +85,13 @@ def _apply_model_args(inp: dict) -> dict:
 def _build_gen_input(images: list[bytes], prompt: str) -> dict:
     """Собирает вход под семейство модели (разные имена параметров у провайдеров)."""
     if "gpt-image" in NANO_BANANA_MODEL:
-        # OpenAI GPT Image: input_images (не image_input), портрет 2:3, свой ключ не нужен
+        # OpenAI GPT Image: input_images (не image_input), портрет 2:3, свой ключ не нужен.
+        # quality=high очень медленный (>6 мин на кадр) — для киоска по умолчанию medium.
         return {
             "prompt": prompt,
             "input_images": [_data_uri(b) for b in images],
             "aspect_ratio": "2:3",
-            "quality": "high",
+            "quality": config.GPT_IMAGE_QUALITY,
             "output_format": "jpeg",
             "moderation": "low",
         }
