@@ -49,7 +49,9 @@ def _font(kind: str, size: int):
                  "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
                  "C:/Windows/Fonts/arialbd.ttf"],
     }
-    for p in table.get(kind, table["regular"]):
+    # страховка от «квадратиков»: если специфичный шрифт не нашёлся — берём
+    # бандл DejaVuSans (кириллица есть), и лишь в самом конце load_default.
+    for p in list(table.get(kind, table["regular"])) + [FONTS / "DejaVuSans.ttf"]:
         try:
             return ImageFont.truetype(str(p), size)
         except Exception:
@@ -133,9 +135,9 @@ def build_card(generated_png: bytes,
             card.paste(s, (x, y), s)
             x += s.width + gap
 
-    # --- футер ---
+    # --- футер --- (Caveat/script — есть кириллица, в стиле подписи)
     if footer:
-        f_foot = _font("italic", 34)
+        f_foot = _font("script", 44)
         fw = _text_w(draw, footer, f_foot)
         draw.text(((CARD_W - fw) // 2, footer_y), footer, font=f_foot, fill=FOOTER_COL)
 
