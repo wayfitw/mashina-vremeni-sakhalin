@@ -82,17 +82,31 @@ def _apply_model_args(inp: dict) -> dict:
     return inp
 
 
+def _build_gen_input(images: list[bytes], prompt: str) -> dict:
+    """Собирает вход под семейство модели (разные имена параметров у провайдеров)."""
+    if "gpt-image" in NANO_BANANA_MODEL:
+        # OpenAI GPT Image: input_images (не image_input), портрет 2:3, свой ключ не нужен
+        return {
+            "prompt": prompt,
+            "input_images": [_data_uri(b) for b in images],
+            "aspect_ratio": "2:3",
+            "quality": "high",
+            "output_format": "jpeg",
+            "moderation": "low",
+        }
+    return _apply_model_args({
+        "prompt": prompt,
+        "image_input": [_data_uri(b) for b in images],
+        "aspect_ratio": "3:4",
+    })
+
+
 def _nano_banana_sync(images: list[bytes], prompt: str) -> bytes | None:
     """Генерация (multi-image): гость + эталон сцены → фотореалистичная вставка
     с сохранением лица и телосложения, узнаваемым фоном, нейтральной одеждой."""
     if not _client:
         return None
-    inp = _apply_model_args({
-        "prompt": prompt,
-        "image_input": [_data_uri(b) for b in images],
-        "aspect_ratio": "3:4",
-    })
-    output = _client.run(NANO_BANANA_MODEL, input=inp)
+    output = _client.run(NANO_BANANA_MODEL, input=_build_gen_input(images, prompt))
     return _read_output(output)
 
 
