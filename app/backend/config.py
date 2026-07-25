@@ -75,6 +75,13 @@ NANO_BANANA_RESOLUTION = os.environ.get("NANO_BANANA_RESOLUTION", "2K").strip()
 # поэтому по умолчанию medium. Допустимо: low | medium | high | auto.
 GPT_IMAGE_QUALITY = os.environ.get("GPT_IMAGE_QUALITY", "medium").strip()
 
+# Резервная модель на случай, когда основная отвечает «Service is temporarily
+# unavailable (E004)». По статистике запусков у seedream-4.5 отказов заметно
+# меньше, поэтому гость получает кадр, а не ошибку. Пусто — резерв выключен.
+FALLBACK_MODEL = os.environ.get(
+    "FALLBACK_MODEL",
+    "bytedance/seedream-4.5:9fe3b8282dcb9d9063b05e33210a1432801f7c5a6641db944baefcec4886761a").strip()
+
 # Face-swap (inswapper) работает в 128×128 → «восковое» лицо. ВЫКЛЮЧЕН по умолчанию;
 # включать только как аварийный вариант, если генерация теряет сходство.
 FACE_SWAP_ENABLED = os.environ.get("FACE_SWAP", "0").strip() in ("1", "true", "yes")

@@ -68,23 +68,22 @@ def _data_uri(image_bytes: bytes, mime: str = "image/jpeg") -> str:
     return f"data:{mime};base64,{base64.b64encode(_shrink(image_bytes)).decode()}"
 
 
-def _apply_model_args(inp: dict) -> dict:
-    """Дополняет вход под семейство модели в NANO_BANANA_MODEL:
+def _apply_model_args(inp: dict, model: str) -> dict:
+    """Дополняет вход под семейство модели:
       - Seedream (bytedance/seedream-*): параметр `size`, без `output_format`;
-      - Nano Banana (google/nano-banana*): `output_format` + `resolution`.
-    По ArcFace (21.07.2026) seedream-4.5 держит лицо лучше (0.74 vs 0.31 raw)."""
-    if "seedream" in NANO_BANANA_MODEL:
+      - Nano Banana (google/nano-banana*): `output_format` + `resolution`."""
+    if "seedream" in model:
         inp["size"] = config.NANO_BANANA_RESOLUTION  # 2K
     else:
         inp["output_format"] = "jpg"
-        if "nano-banana" in NANO_BANANA_MODEL:
+        if "nano-banana" in model:
             inp["resolution"] = config.NANO_BANANA_RESOLUTION
     return inp
 
 
-def _build_gen_input(images: list[bytes], prompt: str) -> dict:
+def _build_gen_input(images: list[bytes], prompt: str, model: str) -> dict:
     """Собирает вход под семейство модели (разные имена параметров у провайдеров)."""
-    if "gpt-image" in NANO_BANANA_MODEL:
+    if "gpt-image" in model:
         # OpenAI GPT Image: input_images (не image_input), портрет 2:3, свой ключ не нужен.
         # quality=high очень медленный (>6 мин на кадр) — для киоска по умолчанию medium.
         return {
@@ -99,39 +98,70 @@ def _build_gen_input(images: list[bytes], prompt: str) -> dict:
         "prompt": prompt,
         "image_input": [_data_uri(b) for b in images],
         "aspect_ratio": "3:4",
-    })
+    }, model)
 
 
-def _nano_banana_sync(images: list[bytes], prompt: str) -> bytes | None:
+def _nano_banana_sync(images: list[bytes], prompt: str, model: str) -> bytes | None:
     """Генерация (multi-image): гость + эталон сцены → фотореалистичная вставка
     с сохранением лица и телосложения, узнаваемым фоном, нейтральной одеждой."""
     if not _client:
         return None
-    output = _client.run(NANO_BANANA_MODEL, input=_build_gen_input(images, prompt))
+    output = _client.run(model, input=_build_gen_input(images, prompt, model))
     return _read_output(output)
 
 
-def nano_banana(images: list[bytes], prompt: str, retries: int = 3) -> bytes | None:
-    """Основной путь генерации. При 429 (лимит запросов/мин) ждём и повторяем —
-    не отдаём гостя в резерв с «не тем» маяком. None только после всех попыток."""
-    if not _client or not images:
-        return None
+def _is_unavailable(msg: str) -> bool:
+    """Временная недоступность модели у провайдера (Google E004 и родственные).
+    Лечится ожиданием — в отличие от ошибок входа, которые повторять бессмысленно."""
+    m = msg.lower()
+    return ("temporarily unavailable" in m or "e004" in m
+            or "modelerror" in m or "503" in m or "502" in m)
+
+
+def _try_model(model: str, images: list[bytes], prompt: str, retries: int) -> bytes | None:
+    """Повторы на одной модели. Паузы зависят от вида сбоя:
+      429 (лимит) и E004 (сервис недоступен) — ждём долго и с нарастанием,
+      сетевые обрывы — короткий повтор."""
     import time
     for attempt in range(retries):
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-            fut = pool.submit(_nano_banana_sync, images, prompt)
+            fut = pool.submit(_nano_banana_sync, images, prompt, model)
             try:
                 return fut.result(timeout=_IMAGE_TIMEOUT)
             except Exception as exc:  # noqa: BLE001
                 msg = str(exc)
                 if attempt < retries - 1:
-                    # 429 — ждём дольше; сетевые обрывы (reset/timeout) — короткий повтор
-                    wait = 25 * (attempt + 1) if "429" in msg else 5
-                    print(f"[replicate] сбой ({msg[:60]}…), жду {wait}с и повторяю ({attempt + 1}/{retries})")
+                    if "429" in msg:
+                        wait = 25 * (attempt + 1)
+                    elif _is_unavailable(msg):
+                        wait = 12 * (attempt + 1)   # провайдер «моргает» — даём отлежаться
+                    else:
+                        wait = 5
+                    print(f"[replicate] {model}: сбой ({msg[:70]}…), жду {wait}с "
+                          f"и повторяю ({attempt + 1}/{retries})")
                     time.sleep(wait)
                     continue
-                print(f"[replicate] nano-banana failed/timeout: {exc}")
+                print(f"[replicate] {model} не отдал результат: {msg[:160]}")
                 return None
+    return None
+
+
+def nano_banana(images: list[bytes], prompt: str, retries: int = 4) -> bytes | None:
+    """Основной путь генерации с запасной моделью.
+
+    У google/nano-banana-pro бывают всплески ошибок «Service is temporarily
+    unavailable (E004)» — это сбой на стороне провайдера. Чтобы гость не получал
+    отказ, после исчерпания повторов пробуем резервную модель (по статистике
+    отказов у seedream-4.5 заметно меньше). None — только если не сработала ни одна."""
+    if not _client or not images:
+        return None
+    out = _try_model(NANO_BANANA_MODEL, images, prompt, retries)
+    if out:
+        return out
+    fallback = config.FALLBACK_MODEL
+    if fallback and fallback != NANO_BANANA_MODEL:
+        print(f"[replicate] основная модель недоступна → резервная {fallback}")
+        return _try_model(fallback, images, prompt, 2)
     return None
 
 
@@ -154,7 +184,7 @@ def _nano_face_swap_sync(frame: bytes, face_png: bytes) -> bytes | None:
         "prompt": NANO_SWAP_PROMPT,
         "image_input": [_data_uri(frame), _data_uri(face_png)],
         "aspect_ratio": "3:4",
-    })
+    }, NANO_BANANA_MODEL)
     output = _client.run(NANO_BANANA_MODEL, input=inp)
     return _read_output(output)
 
