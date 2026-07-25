@@ -8,9 +8,10 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 ASSETS = BASE_DIR / "assets"
 REFERENCES = ASSETS / "references"
-LOGOS = ASSETS / "logos"
+LOGOS = ASSETS / "logos"          # белые версии — для веб-интерфейса (тёмный фон)
+CARD_LOGOS = ASSETS / "logos_card"  # цветные — для печатной карточки (белый фон)
 OUTPUT = ASSETS / "output"
-for _d in (REFERENCES, LOGOS, OUTPUT):
+for _d in (REFERENCES, LOGOS, CARD_LOGOS, OUTPUT):
     _d.mkdir(parents=True, exist_ok=True)
 
 
@@ -90,9 +91,9 @@ FACE_SWAP_ENABLED = os.environ.get("FACE_SWAP", "0").strip() in ("1", "true", "y
 # Передаётся в генерацию ОТДЕЛЬНЫМ изображением (описанием словами идентичности
 # не добиться — модель рисует «похожее»). Файл: assets/logos/04_sakhalin.png.
 BRAND_LOGO_ENABLED = os.environ.get("BRAND_LOGO", "1").strip() in ("1", "true", "yes")
-# brand_cap.png — версия знака для мерча: щит + «САХАЛИН», без подписи «МАЯК РОССИИ»
-# (имя не с цифры, чтобы не попасть в ряд логотипов партнёров на карточке).
-BRAND_LOGO_FILE = LOGOS / os.environ.get("BRAND_LOGO_FILE", "brand_cap.png")
+# _brand_cap.png — версия знака для мерча: щит + «САХАЛИН», без подписи «МАЯК РОССИИ».
+# Имя с подчёркивания: так файл не попадает ни в /api/logos (веб), ни в ряд на карточке.
+BRAND_LOGO_FILE = LOGOS / os.environ.get("BRAND_LOGO_FILE", "_brand_cap.png")
 
 # Улучшение входного фото гостя через GFPGAN (для вебкамеры: чистит шум/блюр,
 # делает лицо резче и красивее). Небольшой минус к ArcFace, но картинка лучше.

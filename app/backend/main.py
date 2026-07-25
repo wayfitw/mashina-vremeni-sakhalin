@@ -66,6 +66,17 @@ def locations():
     ]
 
 
+@app.get("/api/logos")
+def logos():
+    # показываем только реальные логотипы партнёров (не заглушки и не служебные)
+    skip = {"01_partner.png", "02_partner.png"}
+    files = sorted(
+        p.name for p in config.LOGOS.glob("*.png")
+        if not p.name.startswith("_") and p.name not in skip
+    )
+    return [{"url": f"/logos/{f}"} for f in files]
+
+
 @app.post("/api/check-photo")
 async def check_photo(photo: UploadFile = File(...)):
     """Живая проверка кадра до генерации (для экрана съёмки): ok + причина."""
@@ -241,6 +252,7 @@ a{{display:inline-block;margin:12px;padding:14px 24px;background:#fff;color:#0b5
 # ---------------- Статика ----------------
 
 app.mount("/files", StaticFiles(directory=str(config.OUTPUT)), name="files")
+app.mount("/logos", StaticFiles(directory=str(config.LOGOS)), name="logos")
 if FRONTEND.exists():
     app.mount("/", StaticFiles(directory=str(FRONTEND), html=True), name="frontend")
 

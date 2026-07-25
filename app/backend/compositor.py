@@ -62,10 +62,12 @@ def _font(kind: str, size: int):
 
 
 def _load_logos() -> List[Image.Image]:
-    """Логотипы в фиксированном порядке 01..04 (как в макете, слева направо)."""
+    """Логотипы в фиксированном порядке 01..04 (как в макете, слева направо).
+    Берём ЦВЕТНЫЕ версии: в assets/logos лежат белые — для тёмного веб-интерфейса,
+    на белой карточке они были бы не видны."""
     logos: List[Image.Image] = []
-    if config.LOGOS.exists():
-        for p in sorted(config.LOGOS.glob("0*.png")):
+    if config.CARD_LOGOS.exists():
+        for p in sorted(config.CARD_LOGOS.glob("0*.png")):
             try:
                 logos.append(Image.open(p).convert("RGBA"))
             except Exception:

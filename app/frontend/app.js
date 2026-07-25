@@ -1,35 +1,83 @@
-// «Машина времени: Сахалин» — киоск-флоу (прототип)
+// «Машина времени: Сахалин» — киоск-флоу
 const state = { location: null, locationTitle: null, outfit: 'male', variants: [], chosen: null, card: null };
-let stream = null, idleTimer = null;
+let stream = null, idleTimer = null, loadingElapsed = null;
 
 const $ = (s) => document.querySelector(s);
 const screens = document.querySelectorAll('.screen');
 
+// ─── Навигация ────────────────────────────────────────────────
 function show(name) {
   screens.forEach(s => s.classList.toggle('active', s.dataset.screen === name));
+  updateTopbar(name);
   resetIdle();
   if (name === 'capture') startCamera(); else stopCamera();
   if (name === 'welcome') resetState();
+  if (name === 'loading') startLoadingTimer(); else stopLoadingTimer();
 }
 
 function resetState() {
   state.location = state.chosen = state.card = null; state.variants = [];
 }
 
-// авто-сброс к началу по бездействию (кроме экранов загрузки/готово)
+// ─── Авто-сброс по бездействию ────────────────────────────────
 function resetIdle() {
   clearTimeout(idleTimer);
   const cur = document.querySelector('.screen.active')?.dataset.screen;
   if (['welcome', 'loading', 'done'].includes(cur)) return;
-  idleTimer = setTimeout(() => show('welcome'), 90000); // 90 c
+  idleTimer = setTimeout(() => show('welcome'), 90000);
 }
 ['click', 'touchstart'].forEach(e => document.addEventListener(e, resetIdle));
 
-// навигация по data-go
+// ─── data-go навигация ────────────────────────────────────────
 document.querySelectorAll('[data-go]').forEach(b =>
   b.addEventListener('click', () => show(b.dataset.go)));
 
-// ---------- Локации ----------
+// ─── Топбар: переключение режима ─────────────────────────────
+function updateTopbar(screenName) {
+  const topbar   = document.getElementById('global-topbar');
+  const title    = document.getElementById('topbar-title');
+  const partners = document.querySelector('.global-partners');
+  if (screenName === 'welcome') {
+    topbar.classList.remove('inner');
+    title.textContent = 'НЕФТЬ И ГАЗ САХАЛИНА 2026';
+    if (partners) partners.style.display = '';   // показать нижнюю полосу
+  } else {
+    topbar.classList.add('inner');
+    title.textContent = 'Я НА САХАЛИНЕ';
+    if (partners) partners.style.display = 'none'; // убрать нижнюю полосу
+  }
+}
+
+// ─── Таймер загрузки ──────────────────────────────────────────
+function startLoadingTimer() {
+  let sec = 0;
+  const timerEl = document.getElementById('loading-timer');
+  const fillEl  = document.getElementById('loading-bar-fill');
+
+  // Сброс прогресс-бара
+  if (fillEl) { fillEl.style.transition = 'none'; fillEl.style.width = '0%'; }
+  if (timerEl) timerEl.textContent = 'ИДЁТ ГЕНЕРАЦИЯ';
+
+  // Запускаем анимацию прогресс-бара через кадр (после сброса)
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (fillEl) {
+      fillEl.style.transition = 'width 90s linear';
+      fillEl.style.width = '92%';
+    }
+  }));
+
+  stopLoadingTimer();
+  loadingElapsed = setInterval(() => {
+    sec++;
+    if (timerEl) timerEl.textContent = `ИДЁТ ГЕНЕРАЦИЯ · ПРОШЛО ${sec} СЕК`;
+  }, 1000);
+}
+
+function stopLoadingTimer() {
+  if (loadingElapsed) { clearInterval(loadingElapsed); loadingElapsed = null; }
+}
+
+// ─── Локации ──────────────────────────────────────────────────
 async function loadLocations() {
   const r = await fetch('/api/locations');
   const list = await r.json();
@@ -37,7 +85,7 @@ async function loadLocations() {
   list.forEach(loc => {
     const el = document.createElement('div');
     el.className = 'loc ' + (loc.enabled ? 'on' : 'off');
-    el.innerHTML = `<h3>${loc.title}</h3><p>${loc.subtitle}</p>` +
+    el.innerHTML = `<h3>${loc.title}</h3><p class="loc-slogan">${loc.subtitle}</p>` +
       (loc.enabled ? '' : '<div class="soon">Скоро</div>');
     if (loc.enabled) el.addEventListener('click', () => {
       state.location = loc.id; state.locationTitle = loc.title;
@@ -48,11 +96,11 @@ async function loadLocations() {
   });
 }
 
-// выбор образа (одежды)
+// Выбор образа
 document.querySelectorAll('.outfit').forEach(o =>
   o.addEventListener('click', () => { state.outfit = o.dataset.outfit; show('capture'); }));
 
-// ---------- Камера ----------
+// ─── Камера ───────────────────────────────────────────────────
 async function startCamera() {
   $('#cam-error').classList.add('hidden');
   try {
@@ -82,7 +130,7 @@ $('#file').addEventListener('change', e => {
   if (e.target.files[0]) generate(e.target.files[0]);
 });
 
-// ---------- Генерация ----------
+// ─── Генерация ────────────────────────────────────────────────
 async function generate(blob) {
   show('loading');
   const fd = new FormData();
@@ -118,7 +166,8 @@ async function chooseVariant(v, imgEl) {
   imgEl.classList.add('sel');
   state.chosen = v.id;
   show('loading');
-  $('#loading-note').textContent = 'Собираем фото-карточку с логотипами партнёров…';
+  const timerEl = document.getElementById('loading-timer');
+  if (timerEl) timerEl.textContent = 'СОБИРАЕМ КАРТОЧКУ С ЛОГОТИПАМИ…';
   const fd = new FormData(); fd.append('variant_id', v.id);
   if (state.location) fd.append('location', state.location);
   try {
@@ -130,14 +179,12 @@ async function chooseVariant(v, imgEl) {
     show('card');
   } catch (e) {
     alert('Ошибка сборки карточки'); show('variants');
-  } finally {
-    $('#loading-note').textContent = 'Нейросеть создаёт кадры — это займёт 1–2 минуты. Пожалуйста, подождите и не закрывайте страницу.';
   }
 }
 
 $('#retake').addEventListener('click', () => show('capture'));
 
-// ---------- Печать ----------
+// ─── Печать ───────────────────────────────────────────────────
 $('#print').addEventListener('click', async () => {
   const fd = new FormData(); fd.append('card_id', state.card);
   try {
@@ -159,5 +206,24 @@ function finishFlow() {
   }, 1000);
 }
 
-// init
+// ─── Логотипы партнёров (все три места сразу) ─────────────────
+async function loadAllLogos() {
+  try {
+    const r = await fetch('/api/logos');
+    const list = await r.json();
+    ['welcome-logos', 'topbar-logos', 'loading-logos'].forEach(id => {
+      const box = document.getElementById(id);
+      if (!box) return;
+      box.innerHTML = '';
+      list.forEach(({ url }) => {
+        const img = document.createElement('img');
+        img.src = url; img.alt = '';
+        box.appendChild(img);
+      });
+    });
+  } catch (_) {}
+}
+
+// ─── Init ─────────────────────────────────────────────────────
 loadLocations();
+loadAllLogos();

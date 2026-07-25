@@ -2,7 +2,7 @@
   "aniva": {
     "id": "aniva",
     "title": "Маяк Анива",
-    "subtitle": "Легендарный маяк на скале в открытом море",
+    "subtitle": "«Навстречу новым высотам!»",
     "enabled": true,
     "reference": "aniva_clean.png",
     "anchor": {
@@ -13,46 +13,14 @@
     "prompt": "Photorealistic photo editing: place the person from image 1 into the base scene from image 3. Preserve their recognisable facial features, gender, hairstyle, skin tone and overall appearance. Match their natural body build from image 2.\nKeep the background, camera angle, framing, perspective and composition of image 3 unchanged. Position the person naturally at a believable scale, FULL-LENGTH from head to shoes with correct natural human proportions — the head about one-seventh to one-eighth of the total height, never enlarged. The person is FULLY CLOTHED, wearing: {OUTFIT}. Use a relaxed, confident pose and a friendly, natural expression with clear eyes looking toward the camera.\nMatch the scene’s lighting, shadows, depth, colours and atmosphere. Keep the face softly and evenly lit.\nUltra-realistic professional DSLR quality, sharp focus, natural skin texture, correct anatomy and seamless blending. Remove tattoos and blemishes. No text, watermarks or logos anywhere EXCEPT the specified prints on the clothing; no extra people, background changes, blur, distortion, plastic skin, AI artifacts or cut-out appearance.",
     "card_caption": [
       "Маяк Анива. Сахалин.",
-      "Зажигая свет новых возможностей"
+      "Навстречу новым высотам!"
     ],
     "card_footer": "Форумы «Энергия Сахалина» и «Острова роста», 2026 г."
-  },
-  "tikhaya": {
-    "id": "tikhaya",
-    "title": "Бухта Тихая",
-    "subtitle": "Хребты и залив у подножия гор",
-    "enabled": false,
-    "reference": "tikhaya.jpg",
-    "prompt": "Place the PERSON from the portrait photorealistically at Tikhaya Bay on Sakhalin — a calm sea inlet at the foot of steep green-grey mountain ridges, pebble shoreline. Preserve their identity exactly. Vertical DSLR travel photo. No text, logos, frames, extra people or distortions."
-  },
-  "velikan": {
-    "id": "velikan",
-    "title": "Мыс Великан",
-    "subtitle": "Каменные арки и кекуры Охотского моря",
-    "enabled": false,
-    "reference": "velikan.jpg",
-    "prompt": "Place the PERSON from the portrait photorealistically at Cape Velikan on Sakhalin — spectacular sea stacks and natural rock arches rising from the turquoise Sea of Okhotsk. Preserve their identity exactly. Vertical DSLR travel photo. No text, logos, frames, extra people or distortions."
-  },
-  "chertov_most": {
-    "id": "chertov_most",
-    "title": "Чёртов мост",
-    "subtitle": "Инженерное чудо Сахалинской железной дороги",
-    "enabled": false,
-    "reference": "chertov_most.jpg",
-    "prompt": "Place the PERSON from the portrait photorealistically at the Devil's Bridge of the old Sakhalin railway — a curved stone-and-steel viaduct winding through forested hills, autumn taiga. Preserve their identity exactly. Vertical DSLR travel photo. No text, logos, frames, extra people or distortions."
-  },
-  "klokovsky": {
-    "id": "klokovsky",
-    "title": "Клоковский водопад",
-    "subtitle": "Падающая вода у берега моря",
-    "enabled": false,
-    "reference": "klokovsky.jpg",
-    "prompt": "Place the PERSON from the portrait photorealistically at Klokovsky Waterfall on Sakhalin — a wide waterfall cascading down a rocky ledge toward the sea shore, wet rocks, lush greenery and mist. Preserve their identity exactly. Vertical DSLR travel photo. No text, logos, frames, extra people or distortions."
   },
   "spg_prigorodnoe": {
     "id": "spg_prigorodnoe",
     "title": "СПГ. Пригородное",
-    "subtitle": "Время для созидания и гармонии",
+    "subtitle": "«Зажигая свет новых возможностей»",
     "enabled": true,
     "reference": "spg_prigorodnoe.jpg",
     "anchor": {
@@ -64,6 +32,45 @@
     "card_caption": [
       "СПГ. Пригородное. Сахалин.",
       "Зажигая свет новых возможностей"
+    ],
+    "card_footer": "Форумы «Энергия Сахалина» и «Острова роста», 2026 г."
+  },
+  "velikan": {
+    "id": "velikan",
+    "title": "Мыс Великан",
+    "subtitle": "«Масштаб, который вдохновляет на большее»",
+    "enabled": false,
+    "reference": "velikan.jpg",
+    "prompt": "Place the PERSON from the portrait photorealistically at Cape Velikan on Sakhalin — spectacular sea stacks and natural rock arches rising from the turquoise Sea of Okhotsk. Preserve their identity exactly. Vertical DSLR travel photo. No text, logos, frames, extra people or distortions.",
+    "card_caption": [
+      "Мыс Великан. Сахалин.",
+      "Масштаб, который вдохновляет на большее"
+    ],
+    "card_footer": "Форумы «Энергия Сахалина» и «Острова роста», 2026 г."
+  },
+  "nevelsk": {
+    "id": "nevelsk",
+    "title": "Лежбище сивучей в Невельске",
+    "subtitle": "«Преодолевай любые преграды!»",
+    "enabled": false,
+    "reference": "nevelsk.jpg",
+    "prompt": "Place the PERSON from the portrait photorealistically at the Steller sea lion rookery in Nevelsk, Sakhalin — rocky seashore with large sea lions resting on the rocks, ocean waves, dramatic coastal scenery. Preserve their identity exactly. Vertical DSLR travel photo. No text, logos, frames, extra people or distortions.",
+    "card_caption": [
+      "Лежбище сивучей. Невельск. Сахалин.",
+      "Преодолевай любые преграды!"
+    ],
+    "card_footer": "Форумы «Энергия Сахалина» и «Острова роста», 2026 г."
+  },
+  "gorny_vozdukh": {
+    "id": "gorny_vozdukh",
+    "title": "Горнолыжный комплекс «Горный воздух»",
+    "subtitle": "«Твой личный пик успеха»",
+    "enabled": false,
+    "reference": "gorny_vozdukh.jpg",
+    "prompt": "Place the PERSON from the portrait photorealistically at the Gorny Vozdukh ski resort in Yuzhno-Sakhalinsk — panoramic view from the slopes, ski lifts, snowy mountain peaks, winter sunshine. Preserve their identity exactly. Vertical DSLR travel photo. No text, logos, frames, extra people or distortions.",
+    "card_caption": [
+      "«Горный воздух». Сахалин.",
+      "Твой личный пик успеха"
     ],
     "card_footer": "Форумы «Энергия Сахалина» и «Острова роста», 2026 г."
   }

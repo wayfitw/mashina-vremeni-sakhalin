@@ -9,11 +9,23 @@
 <body>
 <div id="app">
 
-  <!-- Глобальный фон: зацикленное видео за всем сайтом -->
+  <!-- Глобальный фон: зацикленное видео -->
   <video class="site-bg-video" autoplay muted loop playsinline preload="auto" poster="media/intro-poster.jpg">
     <source src="media/intro.mp4" type="video/mp4">
   </video>
   <div class="site-bg-overlay"></div>
+
+  <!-- ═══ ГЛОБАЛЬНЫЙ ТОПБАР ═══ -->
+  <div class="global-topbar" id="global-topbar">
+    <span class="global-topbar-title" id="topbar-title">НЕФТЬ И ГАЗ САХАЛИНА 2026</span>
+    <div class="topbar-logos" id="topbar-logos"></div>
+  </div>
+
+  <!-- ═══ ГЛОБАЛЬНАЯ НИЖНЯЯ ПОЛОСА ПАРТНЁРОВ ═══ -->
+  <div class="global-partners">
+    <div class="global-partners-label">ПРОЕКТ РЕАЛИЗОВАН ПРИ ПОДДЕРЖКЕ</div>
+    <div class="global-partners-logos" id="welcome-logos"></div>
+  </div>
 
   <!-- 1. Приветствие -->
   <section class="screen active" data-screen="welcome">
@@ -23,7 +35,6 @@
       <p class="lead">За секунды перенесём вас к легендарным местам острова.<br>Сделайте фото — и заберите карточку на память.</p>
       <button class="btn-primary big" data-go="locations">Путешествовать по Сахалину →</button>
     </div>
-    <footer>IQTER · Интеллектуальные Терминалы</footer>
   </section>
 
   <!-- 2. Выбор локации -->
@@ -56,7 +67,7 @@
   <!-- 3. Съёмка -->
   <section class="screen" data-screen="capture">
     <h2 id="capture-title">Сделайте фотографию</h2>
-    <p class="sub">Лицо — в овале</p>
+    <p class="sub">Лицо — в овале, в кадре вы <b>по пояс</b>: так мы сохраним вашу фигуру</p>
     <div class="camera-wrap">
       <video id="video" autoplay playsinline></video>
       <div class="face-guide"></div>
@@ -73,9 +84,15 @@
 
   <!-- 4. Генерация -->
   <section class="screen" data-screen="loading">
-    <div class="spinner"></div>
-    <h2>Переносим вас на Сахалин…</h2>
-    <p class="sub" id="loading-note">Нейросеть создаёт кадры — это займёт 1–2 минуты. Пожалуйста, подождите и не закрывайте страницу.</p>
+    <div class="loading-inner">
+      <p class="loading-eyebrow" id="loading-timer">ИДЁТ ГЕНЕРАЦИЯ</p>
+      <h2 class="loading-title">Собираем ваш кадр…</h2>
+      <div class="loading-bar"><div class="loading-bar-fill" id="loading-bar-fill"></div></div>
+      <div class="loading-sponsors">
+        <p class="loading-sponsors-label">ИНСТАЛЛЯЦИЮ СДЕЛАЛИ ВОЗМОЖНОЙ</p>
+        <div class="loading-sponsors-logos" id="loading-logos"></div>
+      </div>
+    </div>
   </section>
 
   <!-- 5. Выбор варианта -->
@@ -101,7 +118,7 @@
     </div>
   </section>
 
-  <!-- 7. Печать -->
+  <!-- 7. Финал -->
   <section class="screen" data-screen="done">
     <div class="check">✓</div>
     <h2 id="done-title">Готово!</h2>

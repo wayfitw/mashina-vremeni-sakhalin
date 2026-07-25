@@ -11,14 +11,13 @@ body{
 #app{position:fixed; inset:0;}
 .screen{
   position:absolute; inset:0; display:none; flex-direction:column;
-  align-items:center; justify-content:center; text-align:center; padding:5vh 6vw;
+  align-items:center; justify-content:center; text-align:center;
+  padding:calc(4vh + 84px) 6vw calc(3vh + 80px);
   animation:fade .45s ease; z-index:2;
 }
 .screen.active{display:flex;}
 
-/* Глобальное зацикленное видео-фон за всем сайтом (облёты локаций Сахалина).
-   Приглушено: лёгкое размытие прячет пиксели/артефакты сжатия, снижены яркость
-   и насыщенность. scale(1.06) — чтобы размытые края не оголяли фон по периметру. */
+/* Зацикленное видео-фон */
 .site-bg-video{position:fixed; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;
   filter:blur(4px) brightness(.9) saturate(.9); transform:scale(1.04);}
 .site-bg-overlay{position:fixed; inset:0; z-index:1;
@@ -31,8 +30,90 @@ h2{font-size:min(6vw,40px); color:#fff; margin:.2em 0;}
 .eyebrow{color:#5fd0df; letter-spacing:3px; text-transform:uppercase; font-size:14px; font-weight:700;}
 .lead{color:#cfe1e4; font-size:min(3.2vw,22px); line-height:1.5; margin:1em 0 2em;}
 .sub{color:#a9c4c9; font-size:min(3vw,20px); margin:.2em 0 1.4em;}
-footer{position:absolute; bottom:24px; color:#5a7b82; font-size:13px;}
 
+/* ═══════════════════════════════════════
+   ГЛОБАЛЬНЫЙ ТОПБАР
+═══════════════════════════════════════ */
+.global-topbar{
+  position:fixed; top:0; left:0; right:0; z-index:20;
+  display:flex; align-items:center;
+  padding:0 36px; height:64px;
+  transition:background .35s ease;
+  pointer-events:none;
+}
+
+/* Режим приветственного экрана — прозрачный, только заголовок слева */
+.global-topbar-title{
+  color:#fff; font-size:13px; font-weight:800;
+  letter-spacing:2.5px; text-transform:uppercase;
+  text-shadow:0 1px 8px rgba(0,0,0,.7);
+  white-space:nowrap;
+}
+
+/* Режим внутренних экранов — тёмный фон как нижняя полоса + логотипы справа */
+.global-topbar.inner{
+  background:rgba(6,18,38,0.94);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(255,255,255,.1);
+  box-shadow:0 2px 20px rgba(0,0,0,.5);
+  height:80px;
+  pointer-events:auto;
+}
+.global-topbar.inner .global-topbar-title{
+  font-size:14px; font-weight:900; letter-spacing:3px; text-shadow:none;
+}
+
+/* Логотипы в топбаре (правая часть, только на внутренних экранах) */
+.topbar-logos{
+  display:none;
+  align-items:center;
+  margin-left:auto;
+  height:100%;
+}
+.global-topbar.inner .topbar-logos{
+  display:flex;
+}
+.topbar-logos img{
+  height:min(7vh,52px); width:auto; max-width:180px;
+  object-fit:contain; opacity:.95;
+  padding:0 28px; flex-shrink:0;
+}
+.topbar-logos img + img{
+  border-left:1px solid rgba(255,255,255,.15);
+}
+
+/* ═══════════════════════════════════════
+   ГЛОБАЛЬНАЯ НИЖНЯЯ ПОЛОСА ПАРТНЁРОВ
+═══════════════════════════════════════ */
+.global-partners{
+  position:fixed; bottom:0; left:0; right:0; z-index:20;
+  background:rgba(6,18,38,.92);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border-top:1px solid rgba(255,255,255,.1);
+  padding:10px 48px 14px;
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+}
+.global-partners-label{
+  color:rgba(255,255,255,.38); font-size:9px; font-weight:700;
+  letter-spacing:2.5px; text-transform:uppercase;
+}
+.global-partners-logos{
+  display:flex; align-items:center; justify-content:center; width:100%;
+}
+.global-partners-logos img{
+  height:min(8vh,62px); width:auto; max-width:200px;
+  object-fit:contain; opacity:.95;
+  padding:0 36px; flex-shrink:0;
+}
+.global-partners-logos img + img{
+  border-left:1px solid rgba(255,255,255,.15);
+}
+
+/* ═══════════════════════════════════════
+   КНОПКИ
+═══════════════════════════════════════ */
 .btn-primary{
   background:linear-gradient(135deg,#14707f,#0b5563); color:#fff; border:none;
   border-radius:16px; padding:18px 34px; font-size:20px; font-weight:700; cursor:pointer;
@@ -48,6 +129,9 @@ footer{position:absolute; bottom:24px; color:#5a7b82; font-size:13px;}
 .row{display:flex; gap:18px; align-items:center; margin-top:10px; flex-wrap:wrap; justify-content:center;}
 .upload{display:inline-flex; align-items:center;}
 
+/* ═══════════════════════════════════════
+   ЛОКАЦИИ
+═══════════════════════════════════════ */
 .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:20px; width:100%; max-width:1000px;}
 .loc{
   background:rgba(255,255,255,.07); border:1.5px solid #2c5560; border-radius:20px; padding:26px 22px;
@@ -56,10 +140,14 @@ footer{position:absolute; bottom:24px; color:#5a7b82; font-size:13px;}
 .loc:active{transform:scale(.97);}
 .loc.on{border-color:#5fd0df;}
 .loc.off{opacity:.4; pointer-events:none;}
-.loc h3{margin:0 0 6px; color:#fff; font-size:24px;}
-.loc p{margin:0; color:#a9c4c9; font-size:15px;}
-.loc .soon{color:var(--accent); font-size:13px; font-weight:700; margin-top:10px;}
+.loc h3{margin:0 0 8px; color:#fff; font-size:22px;}
+.loc-slogan{margin:0; color:#5fd0df; font-size:14px; font-style:italic; line-height:1.4;}
+.loc.off .loc-slogan{color:#7fa0a7;}
+.loc .soon{color:var(--accent); font-size:12px; font-weight:700; margin-top:10px;}
 
+/* ═══════════════════════════════════════
+   ОБРАЗ
+═══════════════════════════════════════ */
 .outfit-grid{display:flex; gap:24px; flex-wrap:wrap; justify-content:center; max-width:760px;}
 .outfit{background:rgba(255,255,255,.07); border:1.5px solid #2c5560; border-radius:22px;
   padding:30px 28px; width:300px; cursor:pointer; transition:transform .12s, border-color .12s;}
@@ -68,16 +156,71 @@ footer{position:absolute; bottom:24px; color:#5a7b82; font-size:13px;}
 .outfit h3{margin:0 0 8px; color:#fff; font-size:26px;}
 .outfit p{margin:0; color:#a9c4c9; font-size:16px;}
 
-/* Овал-рамка для лица на экране съёмки */
+/* ═══════════════════════════════════════
+   КАМЕРА
+═══════════════════════════════════════ */
 .face-guide{position:absolute; left:50%; top:42%; transform:translate(-50%,-50%);
   width:52%; aspect-ratio:3/4; border:3px dashed rgba(255,255,255,.85); border-radius:50%;
   box-shadow:0 0 0 1000px rgba(7,29,36,.35); pointer-events:none; z-index:2;}
-
 .camera-wrap{position:relative; width:min(70vw,540px); aspect-ratio:3/4; border-radius:24px; overflow:hidden;
   background:#000; box-shadow:0 12px 40px rgba(0,0,0,.5); margin:10px 0 22px;}
 #video{width:100%; height:100%; object-fit:cover; transform:scaleX(-1);}
 .cam-error{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; padding:20px; background:rgba(0,0,0,.6);}
 
+/* ═══════════════════════════════════════
+   ЭКРАН ЗАГРУЗКИ (редизайн)
+═══════════════════════════════════════ */
+.loading-inner{
+  display:flex; flex-direction:column; align-items:center; gap:18px;
+  width:100%; max-width:680px;
+}
+.loading-eyebrow{
+  color:rgba(95,208,223,.9); font-size:11px; font-weight:800;
+  letter-spacing:3px; text-transform:uppercase; margin:0;
+}
+.loading-title{
+  color:#fff; font-size:min(6.5vw,44px); margin:0; font-weight:700;
+}
+.loading-bar{
+  width:100%; max-width:480px; height:4px;
+  background:rgba(255,255,255,.1); border-radius:2px; overflow:hidden;
+}
+.loading-bar-fill{
+  height:100%; width:0%; border-radius:2px;
+  background:linear-gradient(90deg, #0f2d8a 0%, #00c2c8 100%);
+  transition:width .6s ease;
+}
+
+/* Секция партнёров на загрузке */
+.loading-sponsors{
+  display:flex; flex-direction:column; align-items:center; gap:16px;
+  margin-top:16px; padding:28px 48px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:22px;
+  background:rgba(6,18,38,.65);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  width:100%;
+}
+.loading-sponsors-label{
+  color:rgba(255,255,255,.42); font-size:10px; font-weight:800;
+  letter-spacing:3px; text-transform:uppercase; margin:0;
+}
+.loading-sponsors-logos{
+  display:flex; align-items:center; justify-content:center; flex-wrap:wrap;
+}
+.loading-sponsors-logos img{
+  height:min(7vh,52px); width:auto; max-width:160px;
+  object-fit:contain; opacity:.9;
+  padding:0 28px; flex-shrink:0;
+}
+.loading-sponsors-logos img + img{
+  border-left:1px solid rgba(255,255,255,.15);
+}
+
+/* ═══════════════════════════════════════
+   ВАРИАНТЫ, КАРТОЧКА, ФИНАЛ
+═══════════════════════════════════════ */
 .spinner{width:80px; height:80px; border:7px solid rgba(255,255,255,.15); border-top-color:#5fd0df;
   border-radius:50%; animation:spin 1s linear infinite; margin-bottom:24px;}
 @keyframes spin{to{transform:rotate(360deg);}}
