@@ -39,15 +39,13 @@ VARIANTS = int(os.environ.get("VARIANTS", "3"))
 
 # Образы (одежда) по выбору гостя — подставляются в промпт вместо {OUTFIT}.
 # Для нескольких вариантов перебираются по кругу (девушкам — розовый и белый).
+# Единый мерч на всех локациях (решение заказчика, как на макете):
+# белое худи + белая бейсболка. Одинаково для мужского и женского образа.
+_MERCH_OUTFIT = ("a plain clean white hoodie, a plain white baseball cap, "
+                 "neutral light trousers and clean white sneakers")
 OUTFITS = {
-    "female": [
-        "a stylish modern women's athletic tracksuit in soft pink with clean white sneakers, beautiful and flattering",
-        "a stylish modern women's athletic tracksuit in clean white with white sneakers, beautiful and flattering",
-    ],
-    "male": [
-        "a plain white t-shirt, neutral dark trousers and casual gray sneakers",
-        "a plain white t-shirt, neutral beige trousers and casual white sneakers",
-    ],
+    "female": [_MERCH_OUTFIT],
+    "male": [_MERCH_OUTFIT],
 }
 DEFAULT_OUTFIT = "neutral modern casual outdoor clothing in muted colors"
 

@@ -114,13 +114,19 @@ def build_card(generated_png: bytes,
                    outline=(214, 220, 226), width=2)
 
     # --- ряд логотипов ---
+    # Выравнивание как на референсе: не по одной высоте, а по визуальному «весу»
+    # (равная площадь). Квадратные (ТПП, САХАЛИН) выходят выше, широкие
+    # (СМНМ ВИКО, DeltaЛизинг) — ниже, ряд смотрится ровным.
     logos = _load_logos()
     if logos:
+        target_area = LOGO_H * LOGO_H * 2.4      # подобрано под макет
         scaled = []
         for lg in logos:
-            r = LOGO_H / lg.height
-            scaled.append(lg.resize((max(1, int(lg.width * r)), LOGO_H), Image.LANCZOS))
-        gap = 70
+            a = lg.width / lg.height
+            h = int((target_area / a) ** 0.5)
+            h = max(72, min(int(LOGO_H * 1.55), h))   # квадратные ↑, широкие ↓
+            scaled.append(lg.resize((max(1, int(h * a)), h), Image.LANCZOS))
+        gap = 72
         total = sum(s.width for s in scaled) + gap * (len(scaled) - 1)
         # не вылезаем за поля
         if total > photo_w:
