@@ -103,10 +103,18 @@ def build_card(generated_png: bytes,
     if caption_lines:
         ov = Image.new("RGBA", photo.size, (0, 0, 0, 0))
         od = ImageDraw.Draw(ov)
-        f_cap = _font("script", 74)
-        line_h = 88
-        y = photo.height - 40 - line_h * len(caption_lines)
         x = 46
+        avail = photo.width - 2 * x          # ширина, в которую обязана влезть строка
+        # размер шрифта подбираем под самую длинную строку: у локаций разной длины
+        # подписи, и при фиксированном кегле длинные обрезались по краю карточки
+        size = 74
+        while size > 34:
+            f_cap = _font("script", size)
+            if max(_text_w(od, ln, f_cap) for ln in caption_lines) <= avail:
+                break
+            size -= 2
+        line_h = int(size * 1.19)
+        y = photo.height - 40 - line_h * len(caption_lines)
         for ln in caption_lines:
             od.text((x + 2, y + 2), ln, font=f_cap, fill=(0, 0, 0, 130))   # тень
             od.text((x, y), ln, font=f_cap, fill=(255, 255, 255, 235))
