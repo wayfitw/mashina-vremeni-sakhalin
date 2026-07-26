@@ -207,6 +207,17 @@ def _generate_sync(loc: dict, guest_bytes: bytes, outfit: str):
         except gemini_client.GenerationError as exc:
             raise HTTPException(502, str(exc))
 
+    # отбраковка кадров с полным ростом: модель иногда игнорирует FRAMING LOCK
+    # и отходит камерой назад. Проверяем детерминированно — по доле высоты кадра,
+    # занятой лицом. Бракуем только если остаётся хотя бы один нормальный кадр.
+    if config.FRAME_MIN_FACE > 0 and len(variants) > 1:
+        ratios = [face_metric.frame_ratio(v) for v in variants]
+        good = [i for i, r in enumerate(ratios) if r is not None and r >= config.FRAME_MIN_FACE]
+        if good and len(good) < len(variants):
+            print(f"[frame] доли лица: {[round(r, 3) if r else None for r in ratios]} → "
+                  f"полный рост отбракован, оставлено {len(good)}")
+            variants = [variants[i] for i in good]
+
     # ранжирование по сходству с гостем (ArcFace): лучший кадр — первым; слабые
     # (ниже порога) отбраковываются, но хотя бы один вариант всегда остаётся.
     sims: list = [None] * len(variants)

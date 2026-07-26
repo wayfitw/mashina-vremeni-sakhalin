@@ -150,6 +150,10 @@ FACE_MIN_PX = int(os.environ.get("FACE_MIN_PX", "512"))          # мин. ши�
 FACE_MAX_YAW = float(os.environ.get("FACE_MAX_YAW", "25"))       # макс. поворот головы, град
 FACE_MIN_BLUR = float(os.environ.get("FACE_MIN_BLUR", "40"))     # мин. резкость (var лапласиана)
 FACE_SIM_THRESHOLD = float(os.environ.get("FACE_SIM_THRESHOLD", "0.45"))  # порог отбраковки варианта
+# Отбраковка кадров, где модель проигнорировала FRAMING LOCK и сняла полный рост.
+# Доля высоты кадра, занятая лицом: поясной портрет 0.11–0.18, полный рост 0.05–0.10
+# (калибровка по реальным генерациям 26.07.2026). 0 — проверка выключена.
+FRAME_MIN_FACE = float(os.environ.get("FRAME_MIN_FACE", "0.10"))
 
 # Демо-режим (заглушки) — только когда НИ ОДИН провайдер не настроен
 STUB_MODE = not (bool(GEMINI_API_KEY) or bool(REPLICATE_API_TOKEN))

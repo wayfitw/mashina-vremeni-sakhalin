@@ -74,6 +74,22 @@ def embedding(image_bytes: bytes) -> Optional[np.ndarray]:
     return None if f is None else f.normed_embedding
 
 
+def frame_ratio(image_bytes: bytes) -> Optional[float]:
+    """Доля высоты кадра, занятая лицом (высота bbox / высота изображения).
+
+    Детерминированная проверка кадрирования: по замерам на реальных генерациях
+    поясной портрет даёт 0.11–0.18, полный рост — 0.05–0.10. Позволяет
+    отбраковывать кадры, где модель проигнорировала FRAMING LOCK."""
+    f = _largest(_faces(image_bytes))
+    if f is None:
+        return None
+    try:
+        img = ImageOps.exif_transpose(Image.open(io.BytesIO(image_bytes)))
+        return float(f.bbox[3] - f.bbox[1]) / float(img.height)
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def similarity(emb_a: Optional[np.ndarray], emb_b: Optional[np.ndarray]) -> float:
     """Косинусное сходство (оба эмбеддинга нормированы) в диапазоне ~[-1..1]."""
     if emb_a is None or emb_b is None:
