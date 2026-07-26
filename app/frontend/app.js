@@ -1,6 +1,6 @@
 // «Машина времени: Сахалин» — киоск-флоу
 const state = { location: null, locationTitle: null, outfit: 'male', variants: [], chosen: null, card: null };
-let stream = null, idleTimer = null, loadingElapsed = null;
+let stream = null, idleTimer = null, loadingElapsed = null, qrPoller = null;
 
 const $ = (s) => document.querySelector(s);
 const screens = document.querySelectorAll('.screen');
@@ -10,7 +10,7 @@ function show(name) {
   screens.forEach(s => s.classList.toggle('active', s.dataset.screen === name));
   updateTopbar(name);
   resetIdle();
-  if (name === 'capture') startCamera(); else stopCamera();
+  if (name === 'capture') { startCamera(); showCameraMode(); } else { stopCamera(); stopQrPoller(); }
   if (name === 'welcome') resetState();
   if (name === 'loading') startLoadingTimer(); else stopLoadingTimer();
 }
@@ -205,6 +205,95 @@ function finishFlow() {
     if (n <= 0) { clearInterval(t); show('welcome'); }
   }, 1000);
 }
+
+// ─── QR-загрузка фото с телефона гостя ───────────────────────
+function showCameraMode() {
+  document.getElementById('camera-mode').classList.remove('hidden');
+  document.getElementById('qr-mode').classList.add('hidden');
+}
+function showQrMode() {
+  document.getElementById('camera-mode').classList.add('hidden');
+  document.getElementById('qr-mode').classList.remove('hidden');
+}
+function stopQrPoller() {
+  if (qrPoller) { clearInterval(qrPoller); qrPoller = null; }
+}
+
+document.getElementById('qr-upload-btn').addEventListener('click', async () => {
+  try {
+    const r = await fetch('/api/upload-session', { method: 'POST' });
+    const data = await r.json();
+    document.getElementById('qr-upload-img').src = data.qr_url;
+    document.getElementById('qr-waiting').textContent = 'Ожидаем фото…';
+    showQrMode();
+    stopCamera();
+
+    qrPoller = setInterval(async () => {
+      try {
+        const sr = await fetch(`/api/upload-status/${data.session_id}`);
+        const s = await sr.json();
+        if (s.ready) {
+          stopQrPoller();
+          document.getElementById('qr-waiting').textContent = '✓ Фото получено! Генерируем…';
+          const ir = await fetch(`/files/${s.photo_id}`);
+          const blob = await ir.blob();
+          generate(blob);
+        }
+      } catch (_) {}
+    }, 2000);
+  } catch (e) {
+    alert('Не удалось создать сессию: ' + e.message);
+  }
+});
+
+document.getElementById('qr-cancel').addEventListener('click', () => {
+  stopQrPoller();
+  showCameraMode();
+  startCamera();
+});
+
+// ─── Email-отправка карточки ──────────────────────────────────
+document.getElementById('send-email').addEventListener('click', async () => {
+  const input  = document.getElementById('email-input');
+  const status = document.getElementById('email-status');
+  const btn    = document.getElementById('send-email');
+  const email  = input.value.trim();
+
+  if (!email || !email.includes('@')) {
+    status.textContent = 'Введите корректный email';
+    status.className = 'email-status error';
+    return;
+  }
+  if (!state.card) {
+    status.textContent = 'Карточка ещё не готова';
+    status.className = 'email-status error';
+    return;
+  }
+
+  btn.disabled = true;
+  status.className = 'email-status';
+  status.textContent = 'Отправляем…';
+
+  try {
+    const fd = new FormData();
+    fd.append('card_id', state.card);
+    fd.append('email', email);
+    const r = await fetch('/api/send-email', { method: 'POST', body: fd });
+    const data = await r.json();
+    if (data.sent) {
+      status.textContent = '✓ Письмо отправлено!';
+      input.value = '';
+    } else {
+      status.textContent = data.reason || 'Не удалось отправить';
+      status.className = 'email-status error';
+    }
+  } catch (_) {
+    status.textContent = 'Ошибка соединения';
+    status.className = 'email-status error';
+  } finally {
+    btn.disabled = false;
+  }
+});
 
 // ─── Логотипы партнёров (все три места сразу) ─────────────────
 async function loadAllLogos() {

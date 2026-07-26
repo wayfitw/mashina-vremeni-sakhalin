@@ -7,8 +7,10 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import subprocess
 import sys
+import time
 
 # Windows: консоль по умолчанию cp1252, а логи/print содержат кириллицу —
 # без этого обработчик ошибки сам падает с UnicodeEncodeError (500 вместо чистого 502).
@@ -22,7 +24,7 @@ from pathlib import Path
 from typing import Optional
 
 import qrcode
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, Request, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
@@ -32,8 +34,27 @@ import gemini_client
 import compositor
 import facecrop
 import face_metric
+import email_client
 
 app = FastAPI(title="Машина времени: Сахалин — прототип")
+
+# Сессии загрузки фото с телефона гостя (in-memory, сбрасываются при рестарте)
+_upload_sessions: dict = {}  # session_id → {status, path, created_at}
+
+
+def _output_file(card_id: str):
+    """Путь к файлу карточки внутри assets/output — с защитой от выхода за папку.
+
+    Сайт публичный, а card_id приходит из запроса: без проверки строка вида
+    '../../.env' указала бы на любой файл на сервере (и уехала бы гостю письмом
+    или в печать). Разрешаем только простое имя файла из самой папки output."""
+    name = os.path.basename(str(card_id))
+    if not name or name in (".", ".."):
+        raise HTTPException(404, "Карточка не найдена")
+    path = (config.OUTPUT / name).resolve()
+    if path.parent != config.OUTPUT.resolve() or not path.is_file():
+        raise HTTPException(404, "Карточка не найдена")
+    return path
 
 
 @app.on_event("startup")
@@ -263,11 +284,141 @@ def make_card(variant_id: str = Form(...), location: str = Form("")):
             "qr_url": f"/files/{qr_id}", "digital_url": qr_url}
 
 
+# ---------------- Загрузка фото с телефона гостя (QR-флоу партнёра) ----------------
+
+@app.post("/api/upload-session")
+def create_upload_session(request: Request):
+    """Киоск вызывает перед показом QR. Возвращает session_id и QR-код."""
+    session_id = uuid.uuid4().hex[:12]
+    _upload_sessions[session_id] = {"status": "waiting", "path": None, "created_at": time.time()}
+
+    # Если задан публичный URL (домен/туннель) — используем его.
+    # Иначе определяем локальный IP для работы в одной сети (мини-ПК киоска).
+    pub = config.PUBLIC_BASE_URL
+    if pub and "localhost" not in pub and "127.0.0.1" not in pub:
+        upload_url = f"{pub}/u/{session_id}"
+    else:
+        import subprocess as _sp
+        local_ip = None
+        for iface in ("en0", "en1", "eth0", "wlan0"):
+            try:
+                out = _sp.check_output(["ipconfig", "getifaddr", iface],
+                                       stderr=_sp.DEVNULL, text=True).strip()
+                if out and not out.startswith("127."):
+                    local_ip = out
+                    break
+            except Exception:
+                pass
+        if not local_ip:
+            local_ip = str(request.base_url.hostname)
+        port = request.base_url.port or 8000
+        upload_url = f"http://{local_ip}:{port}/u/{session_id}"
+    qr = qrcode.make(upload_url)
+    qr_buf = io.BytesIO(); qr.save(qr_buf, format="PNG")
+    qr_name = f"qr_up_{session_id}.png"
+    _save(qr_buf.getvalue(), qr_name)
+
+    return {"session_id": session_id, "upload_url": upload_url, "qr_url": f"/files/{qr_name}"}
+
+
+@app.get("/api/upload-status/{session_id}")
+def upload_status(session_id: str):
+    """Киоск опрашивает раз в 2 сек — ждёт когда гость загрузит фото."""
+    s = _upload_sessions.get(session_id)
+    if not s:
+        raise HTTPException(404, "Сессия не найдена")
+    return {"ready": s["status"] == "ready", "photo_id": s.get("path")}
+
+
+@app.post("/api/upload-photo/{session_id}")
+async def receive_upload(session_id: str, photo: UploadFile = File(...)):
+    """Мобильная страница POST сюда — сохраняем фото и помечаем сессию готовой."""
+    s = _upload_sessions.get(session_id)
+    if not s:
+        raise HTTPException(404, "Сессия не найдена или истекла")
+    data = await photo.read()
+    name = f"upload_{session_id}.jpg"
+    _save(data, name)
+    s["status"] = "ready"
+    s["path"] = name
+    return {"ok": True}
+
+
+@app.get("/u/{session_id}", response_class=HTMLResponse)
+def mobile_upload_page(session_id: str):
+    """Мобильная страница для гостя: открывается по QR, гость выбирает фото из галереи."""
+    if session_id not in _upload_sessions:
+        return HTMLResponse("<h2 style='font-family:sans-serif;padding:40px'>Сессия не найдена или истекла</h2>", 404)
+    return HTMLResponse(f"""<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Я на Сахалине · Загрузить фото</title>
+<style>
+*{{box-sizing:border-box;margin:0;padding:0}}
+body{{background:#071d24;color:#fff;font-family:-apple-system,Arial,sans-serif;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:32px 24px;text-align:center}}
+.logo{{font-size:13px;font-weight:800;letter-spacing:3px;color:#5fd0df;margin-bottom:24px}}
+h1{{font-size:28px;font-weight:700;margin-bottom:12px}}
+p{{color:#a9c4c9;font-size:17px;line-height:1.6;margin-bottom:36px}}
+.btn{{display:block;width:100%;max-width:360px;background:linear-gradient(135deg,#14707f,#0b5563);
+  color:#fff;border:none;border-radius:20px;padding:22px;font-size:20px;
+  font-weight:700;cursor:pointer;text-align:center}}
+.status{{margin-top:28px;font-size:17px;color:#5fd0df;min-height:26px;line-height:1.5}}
+.status.err{{color:#f87171}}
+input[type=file]{{display:none}}
+</style>
+</head>
+<body>
+<div class="logo">НЕФТЬ И ГАЗ САХАЛИНА 2026</div>
+<h1>«Я на Сахалине»</h1>
+<p>Выберите своё фото из галереи.<br>Оно автоматически появится на стенде.</p>
+<label class="btn" for="photo">📷 Выбрать фото</label>
+<input type="file" id="photo" accept="image/*">
+<p class="status" id="status"></p>
+<script>
+document.getElementById('photo').addEventListener('change', async function() {{
+  const file = this.files[0];
+  if (!file) return;
+  const st = document.getElementById('status');
+  st.className = 'status';
+  st.textContent = 'Отправляем фото…';
+  const fd = new FormData();
+  fd.append('photo', file, file.name);
+  try {{
+    const r = await fetch('/api/upload-photo/{session_id}', {{method:'POST', body:fd}});
+    if (r.ok) {{
+      st.textContent = '✓ Готово! Смотрите на экран стенда.';
+    }} else {{
+      st.className = 'status err';
+      st.textContent = 'Ошибка — попробуйте ещё раз.';
+    }}
+  }} catch(e) {{
+    st.className = 'status err';
+    st.textContent = 'Нет соединения. Убедитесь что вы в сети стенда.';
+  }}
+}});
+</script>
+</body>
+</html>""")
+
+
+@app.post("/api/send-email")
+def send_email_card(card_id: str = Form(...), email: str = Form(...)):
+    """Отправка готовой карточки на почту гостя (модуль партнёра, Яндекс SMTP)."""
+    path = _output_file(card_id)
+    try:
+        result = email_client.send_card(email, path)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(500, f"Ошибка отправки письма: {exc}")
+    return result
+
+
 @app.post("/api/print")
 def print_card(card_id: str = Form(...)):
-    path = config.OUTPUT / card_id
-    if not path.exists():
-        raise HTTPException(404, "Карточка не найдена")
+    path = _output_file(card_id)
     if not config.PRINT_ENABLED:
         return {"printed": False, "reason": "Печать выключена (PRINT_ENABLED=0). Карточка сохранена.",
                 "path": str(path)}
@@ -284,8 +435,7 @@ def print_card(card_id: str = Form(...)):
 
 @app.get("/d/{card_id}", response_class=HTMLResponse)
 def digital(card_id: str):
-    if not (config.OUTPUT / card_id).exists():
-        raise HTTPException(404, "Не найдено")
+    _output_file(card_id)  # проверка, что запрошен файл из output, а не путь наружу
     return f"""<!doctype html><html lang=ru><head><meta charset=utf-8>
 <meta name=viewport content='width=device-width,initial-scale=1'>
 <title>Я на Сахалине</title>

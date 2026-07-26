@@ -132,6 +132,16 @@ PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "http://localhost:8000").rst
 # Срок хранения цифровой версии (часы) — для автоудаления (в проде)
 DIGITAL_TTL_HOURS = int(os.environ.get("DIGITAL_TTL_HOURS", "72"))
 
+# --- Email (отправка карточки гостю, Яндекс SMTP) ---
+# Письма шлются только когда задан SMTP_PASS (App-пароль из Яндекс ID:
+# Безопасность → Пароли приложений → Почта). Без него /api/send-email
+# вернёт вежливый отказ, флоу не ломается.
+SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.yandex.ru").strip()
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "465"))
+SMTP_USER = os.environ.get("SMTP_USER", "nasakhaline@yandex.com").strip()
+SMTP_PASS = os.environ.get("SMTP_PASS", "").strip()
+SMTP_FROM = os.environ.get("SMTP_FROM", "nasakhaline@yandex.com").strip()
+
 # --- ArcFace-метрика сходства лиц (insightface) — рекомендация №1 ---
 FACE_MODEL = os.environ.get("FACE_MODEL", "buffalo_l").strip()
 # Какие модули insightface грузить. По умолчанию только нужные — экономит RAM
