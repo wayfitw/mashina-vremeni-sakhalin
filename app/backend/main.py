@@ -156,6 +156,10 @@ def _generate_sync(loc: dict, guest_bytes: bytes, outfit: str):
         ok, reason, info = face_metric.check_input(guest_bytes)
         print(f"[gate] ok={ok} {info}")
         if not ok:
+            # сохраняем отклонённый кадр: иначе разбор жалобы «камеру держу ровно»
+            # упирается в догадки — по логам не видно, что именно увидел гейт.
+            # Удалится автоочисткой вместе с остальными по DIGITAL_TTL_HOURS.
+            _save(guest_bytes, f"rej_{uuid.uuid4().hex[:6]}.jpg")
             raise HTTPException(422, reason)
 
     # убираем тени с лица с вебки: выравниваем свет ДО кропов и генерации

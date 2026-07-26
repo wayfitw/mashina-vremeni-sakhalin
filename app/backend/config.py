@@ -158,7 +158,11 @@ FACE_GATE_ENABLED = os.environ.get("FACE_GATE", "1").strip() in ("1", "true", "y
 FACE_RANK_ENABLED = os.environ.get("FACE_RANK", "1").strip() in ("1", "true", "yes")
 FACE_MIN_PX = int(os.environ.get("FACE_MIN_PX", "512"))          # мин. ширина лица (реком. 512)
 FACE_MAX_YAW = float(os.environ.get("FACE_MAX_YAW", "25"))       # макс. поворот головы, град
-FACE_MIN_BLUR = float(os.environ.get("FACE_MIN_BLUR", "40"))     # мин. резкость (var лапласиана)
+FACE_MIN_BLUR = float(os.environ.get("FACE_MIN_BLUR", "40"))     # устар.: var лапласиана по кадру, только в логах
+# Мин. резкость ЛИЦА, приведённого к 256×256 — не зависит от разрешения вебки.
+# Замеры 26.07.2026: нормальный кадр 77–121, слабая вебка с апскейлом ~51,
+# заметный смаз ~22, сильный ~10. Порог 30 пропускает слабые камеры и режет смаз.
+FACE_MIN_SHARP = float(os.environ.get("FACE_MIN_SHARP", "30"))
 FACE_SIM_THRESHOLD = float(os.environ.get("FACE_SIM_THRESHOLD", "0.45"))  # порог отбраковки варианта
 # Отбраковка кадров, где модель проигнорировала FRAMING LOCK и сняла полный рост.
 # Доля высоты кадра, занятая лицом: поясной портрет 0.11–0.18, полный рост 0.05–0.10

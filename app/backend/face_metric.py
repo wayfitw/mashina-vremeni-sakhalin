@@ -98,12 +98,36 @@ def similarity(emb_a: Optional[np.ndarray], emb_b: Optional[np.ndarray]) -> floa
 
 
 def _blur_var(image_bytes: bytes) -> float:
-    """Дисперсия лапласиана — мера резкости (чем меньше, тем более размыто)."""
+    """Дисперсия лапласиана по всему кадру. Оставлена только для логов.
+
+    Как гейт не годится: величина падает не от смаза, а от разрешения съёмки.
+    Замер 26.07.2026 — тот же кадр, снятый в 640×480 и растянутый до 2560×1920,
+    даёт 14 против 357 у оригинала, хотя лицо на нём вполне рабочее."""
     try:
         import cv2
         arr = _to_bgr(image_bytes)
         gray = cv2.cvtColor(arr, cv2.COLOR_BGR2GRAY)
         return float(cv2.Laplacian(gray, cv2.CV_64F).var())
+    except Exception:  # noqa: BLE001
+        return 1e9  # не смогли посчитать — не блокируем по резкости
+
+
+def _face_sharpness(image_bytes: bytes, face) -> float:
+    """Резкость самого лица, приведённая к единому масштабу (кроп → 256×256).
+
+    Именно это нас интересует: смазано ли лицо, а не сколько мегапикселей у
+    вебки. Ориентиры (замер 26.07.2026): нормальный кадр 77–121, слабая вебка
+    с апскейлом ~51, заметный смаз ~22, сильный ~10."""
+    try:
+        import cv2
+        gray = cv2.cvtColor(_to_bgr(image_bytes), cv2.COLOR_BGR2GRAY)
+        x1, y1, x2, y2 = (int(v) for v in face.bbox)
+        x1, y1 = max(0, x1), max(0, y1)
+        crop = gray[y1:y2, x1:x2]
+        if crop.size == 0:
+            return 1e9
+        norm = cv2.resize(crop, (256, 256), interpolation=cv2.INTER_AREA)
+        return float(cv2.Laplacian(norm, cv2.CV_64F).var())
     except Exception:  # noqa: BLE001
         return 1e9  # не смогли посчитать — не блокируем по резкости
 
@@ -129,10 +153,17 @@ def check_input(image_bytes: bytes) -> tuple[bool, str, dict]:
         info["yaw_deg"] = round(yaw, 1)
         if yaw > config.FACE_MAX_YAW:
             return False, "Смотрите прямо в камеру — голова слишком повёрнута.", info
-    blur = _blur_var(image_bytes)
-    info["blur_var"] = round(blur, 1)
-    if blur < config.FACE_MIN_BLUR:
-        return False, "Кадр смазан — держите камеру ровно и переснимите.", info
+    sharp = _face_sharpness(image_bytes, f)
+    info["face_sharp"] = round(sharp, 1)
+    info["blur_var"] = round(_blur_var(image_bytes), 1)  # только для диагностики
+    try:
+        img = ImageOps.exif_transpose(Image.open(io.BytesIO(image_bytes)))
+        info["src"] = f"{img.width}x{img.height}"
+    except Exception:  # noqa: BLE001
+        pass
+    if sharp < config.FACE_MIN_SHARP:
+        return False, ("Лицо получилось нечётким. Добавьте света и переснимите — "
+                       "если не помогает, загрузите фото с телефона по кнопке ниже."), info
     return True, "ok", info
 
 
