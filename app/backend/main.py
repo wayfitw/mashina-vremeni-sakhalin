@@ -10,6 +10,7 @@ import json
 import os
 import subprocess
 import sys
+import threading
 import time
 
 # Windows: консоль по умолчанию cp1252, а логи/print содержат кириллицу —
@@ -41,6 +42,11 @@ app = FastAPI(title="Машина времени: Сахалин — прото�
 # Сессии загрузки фото с телефона гостя (in-memory, сбрасываются при рестарте)
 _upload_sessions: dict = {}  # session_id → {status, path, created_at}
 
+# Фоновые задачи генерации (in-memory). Клиент забирает результат опросом,
+# поэтому запрос не висит открытым все ~2 минуты работы моделей.
+_jobs: dict = {}  # job_id → {status, result, detail, created_at}
+JOB_TTL_SEC = 30 * 60  # столько храним исход после завершения
+
 
 def _output_file(card_id: str):
     """Путь к файлу карточки внутри assets/output — с защитой от выхода за папку.
@@ -68,14 +74,16 @@ def _warm_face_metric():
 def _start_output_cleanup():
     """Автоочистка assets/output по DIGITAL_TTL_HOURS (на киоске диск не резиновый:
     каждый гость оставляет ~5 МБ — кадры, карточка, QR и отладочные dbg_*)."""
-    import threading
-    import time
 
     def _cleanup_loop():
         ttl = config.DIGITAL_TTL_HOURS * 3600
         while True:
             try:
                 now = time.time()
+                # заодно выкидываем отработавшие задачи, иначе реестр растёт вечно
+                for jid in [k for k, v in _jobs.items()
+                            if v["status"] != "running" and now - v["created_at"] > JOB_TTL_SEC]:
+                    _jobs.pop(jid, None)
                 removed = 0
                 for p in config.OUTPUT.iterdir():
                     if p.name == ".gitkeep" or not p.is_file():
@@ -139,15 +147,57 @@ async def check_photo(photo: UploadFile = File(...)):
 @app.post("/api/generate")
 async def generate(location: str = Form(...), photo: UploadFile = File(...),
                    outfit: str = Form("male")):
-    """Приём запроса. Тяжёлая часть уходит в отдельный поток: генерация занимает
-    ~2 минуты, и если выполнять её прямо здесь, event loop блокируется и сайт
-    целиком перестаёт отвечать — даже главная страница отдаёт 504."""
+    """Запускает генерацию фоном и сразу отдаёт job_id — клиент опрашивает статус.
+
+    Раньше ответ ждали в этом же запросе, и он висел ~2 минуты. Сеть гостя такое
+    переживает не всегда: 26.07.2026 у тестировщика соединение рвалось ровно на
+    60-й секунде (nginx писал 499, генерация на сервере доходила до конца, но
+    отдавать результат было уже некому — браузер показывал «Failed to fetch»).
+    Короткие опросы в таймаут не упираются, и заодно перезагрузка страницы больше
+    не теряет результат."""
     loc = LOCATIONS.get(location)
     if not loc or not loc["enabled"]:
         raise HTTPException(400, "Локация недоступна")
 
     guest_bytes = await photo.read()
-    return await run_in_threadpool(_generate_sync, loc, guest_bytes, outfit)
+    job_id = uuid.uuid4().hex[:12]
+    _jobs[job_id] = {"status": "running", "result": None, "detail": None,
+                     "created_at": time.time()}
+    threading.Thread(target=_run_job, args=(job_id, loc, guest_bytes, outfit),
+                     daemon=True).start()
+    return {"job_id": job_id}
+
+
+def _run_job(job_id: str, loc: dict, guest_bytes: bytes, outfit: str):
+    """Выполняет генерацию и складывает исход в реестр задач."""
+    job = _jobs.get(job_id)
+    try:
+        result = _generate_sync(loc, guest_bytes, outfit)
+        if job is not None:
+            job["result"] = result
+            job["status"] = "done"
+    except HTTPException as exc:
+        if job is not None:
+            job["detail"] = str(exc.detail)
+            job["status"] = "error"
+    except Exception as exc:  # noqa: BLE001
+        print(f"[job {job_id}] неожиданная ошибка: {exc!r}")
+        if job is not None:
+            job["detail"] = "Не удалось сгенерировать. Попробуйте ещё раз."
+            job["status"] = "error"
+
+
+@app.get("/api/generate-status/{job_id}")
+def generate_status(job_id: str):
+    """Опрос результата. Готовый ответ отдаётся в том же виде, что и раньше."""
+    job = _jobs.get(job_id)
+    if job is None:
+        raise HTTPException(404, "Задача не найдена или истекла")
+    if job["status"] == "done":
+        return {"status": "done", **job["result"]}
+    if job["status"] == "error":
+        return {"status": "error", "detail": job["detail"]}
+    return {"status": "running", "elapsed": round(time.time() - job["created_at"], 1)}
 
 
 def _generate_sync(loc: dict, guest_bytes: bytes, outfit: str):
@@ -451,6 +501,23 @@ a{{display:inline-block;margin:12px;padding:14px 24px;background:#fff;color:#0b5
 
 
 # ---------------- Статика ----------------
+
+@app.get("/", response_class=HTMLResponse)
+def index():
+    """Главную отдаём без кэша и с версией у скриптов.
+
+    Иначе браузер гостя остаётся на старом app.js после обновления. 26.07.2026
+    это сломало бы флоу: контракт /api/generate сменился на job_id + опрос, а
+    закэшированный скрипт ждёт прежний ответ и падает на разборе. Версия берётся
+    из времени правки файлов, так что бампать её руками не нужно."""
+    html = (FRONTEND / "index.html").read_text(encoding="utf-8")
+    try:
+        v = int(max((FRONTEND / n).stat().st_mtime for n in ("app.js", "styles.css")))
+    except OSError:
+        v = 0
+    return HTMLResponse(html.replace("__V__", str(v)),
+                        headers={"Cache-Control": "no-store, must-revalidate"})
+
 
 app.mount("/files", StaticFiles(directory=str(config.OUTPUT)), name="files")
 app.mount("/logos", StaticFiles(directory=str(config.LOGOS)), name="logos")

@@ -131,6 +131,9 @@ $('#file').addEventListener('change', e => {
 });
 
 // ─── Генерация ────────────────────────────────────────────────
+// Сервер сразу отдаёт job_id, результат забираем короткими опросами.
+// Держать один запрос открытым все ~2 минуты нельзя: сеть гостя может оборвать
+// его на 60-й секунде, и готовый кадр пропадал с «Failed to fetch».
 async function generate(blob) {
   show('loading');
   const fd = new FormData();
@@ -139,8 +142,9 @@ async function generate(blob) {
   fd.append('photo', blob, 'guest.jpg');
   try {
     const r = await fetch('/api/generate', { method: 'POST', body: fd });
-    if (!r.ok) throw new Error((await r.json()).detail || 'Ошибка генерации');
-    const data = await r.json();
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || 'Ошибка генерации');
+    const { job_id } = await r.json();
+    const data = await waitForJob(job_id);
     state.variants = data.variants;
     $('#variants-loc').textContent = data.location + (data.stub_mode ? ' · демо-режим (без API-ключа)' : '');
     renderVariants();
@@ -149,6 +153,30 @@ async function generate(blob) {
     alert('Не получилось сгенерировать: ' + e.message);
     show('capture');
   }
+}
+
+// Опрос результата. Одиночный сбой сети не роняет сессию: пробуем дальше,
+// сдаёмся только после нескольких неудач подряд или по общему лимиту времени.
+async function waitForJob(jobId, { intervalMs = 2500, timeoutMs = 420000 } = {}) {
+  const until = Date.now() + timeoutMs;
+  let misses = 0;
+  while (Date.now() < until) {
+    await new Promise(r => setTimeout(r, intervalMs));
+    let res;
+    try {
+      res = await fetch(`/api/generate-status/${jobId}`);
+    } catch (_) {
+      if (++misses >= 8) throw new Error('Нет связи с сервером');
+      continue;
+    }
+    if (res.status === 404) throw new Error('Задача не найдена — переснимите');
+    if (!res.ok) { if (++misses >= 8) throw new Error('Сервер не отвечает'); continue; }
+    misses = 0;
+    const data = await res.json();
+    if (data.status === 'done') return data;
+    if (data.status === 'error') throw new Error(data.detail || 'Ошибка генерации');
+  }
+  throw new Error('Генерация заняла слишком долго — попробуйте ещё раз');
 }
 
 function renderVariants() {
