@@ -314,14 +314,21 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 .variants img:active{transform:scale(.97);}
 .variants img.sel{border-color:#5fd0df;}
 
-.card-view{display:flex; gap:clamp(18px,3vw,40px); align-items:center;
+/* flex-start, а не center: колонка с QR короче карточки и при центрировании
+   всплывала выше её верхнего края — на iPad на 48px. Теперь обе начинаются
+   от одной линии на любом экране. */
+.card-view{display:flex; gap:clamp(18px,3vw,40px); align-items:flex-start;
   flex-wrap:wrap; justify-content:center; width:100%;}
 #card-img{height:min(62vh,540px); width:auto; max-width:min(42vw,380px);
   object-fit:contain; border-radius:14px; box-shadow:0 14px 44px rgba(0,0,0,.5); background:#fff;}
 .card-side{display:flex; flex-direction:column; align-items:center; gap:8px;
   width:min(100%,340px);}
+/* QR опущен вниз, а подпись под ним прижата к кнопке печати: раньше между
+   подписью и кнопкой зияла дыра, а сам QR висел выше верхнего края карточки. */
 .qr{width:clamp(96px,14vh,150px); height:clamp(96px,14vh,150px);
-  background:#fff; border-radius:12px; padding:8px;}
+  background:#fff; border-radius:12px; padding:8px;
+  margin-top:clamp(4px,1.6vh,16px);}
+.card-side .sub{margin-bottom:0;}
 
 /* ═══════════════════════════════════════
    QR-ЗАГРУЗКА ФОТО С ТЕЛЕФОНА
