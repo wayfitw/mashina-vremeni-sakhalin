@@ -172,7 +172,7 @@ h2{font-size:min(6vw,40px); color:#fff; margin:.2em 0;}
 ═══════════════════════════════════════ */
 .loading-inner{
   display:flex; flex-direction:column; align-items:center; gap:18px;
-  width:100%; max-width:680px;
+  width:100%; max-width:900px;   /* хватает, чтобы пять логотипов встали в строку */
 }
 .loading-eyebrow{
   color:rgba(95,208,223,.9); font-size:11px; font-weight:800;
@@ -194,7 +194,7 @@ h2{font-size:min(6vw,40px); color:#fff; margin:.2em 0;}
 /* Секция партнёров на загрузке */
 .loading-sponsors{
   display:flex; flex-direction:column; align-items:center; gap:16px;
-  margin-top:16px; padding:28px 48px;
+  margin-top:16px; padding:24px clamp(14px,3vw,36px);
   border:1px solid rgba(255,255,255,.12);
   border-radius:22px;
   background:rgba(6,18,38,.65);
@@ -206,13 +206,17 @@ h2{font-size:min(6vw,40px); color:#fff; margin:.2em 0;}
   color:rgba(255,255,255,.42); font-size:10px; font-weight:800;
   letter-spacing:3px; text-transform:uppercase; margin:0;
 }
+/* Пятый логотип раньше срывался на вторую строку: nowrap + гибкие отступы
+   держат всех в одну линию и на узких экранах киоска тоже. */
 .loading-sponsors-logos{
-  display:flex; align-items:center; justify-content:center; flex-wrap:wrap;
+  display:flex; align-items:center; justify-content:center;
+  flex-wrap:nowrap; width:100%;
 }
 .loading-sponsors-logos img{
-  height:min(7vh,52px); width:auto; max-width:160px;
+  height:min(7vh,52px); width:auto; max-width:clamp(80px,19%,200px);
   object-fit:contain; opacity:.9;
-  padding:0 28px; flex-shrink:0;
+  padding:0 clamp(8px,1.8vw,24px);
+  flex:0 1 auto; min-width:0;
 }
 .loading-sponsors-logos img + img{
   border-left:1px solid rgba(255,255,255,.15);
