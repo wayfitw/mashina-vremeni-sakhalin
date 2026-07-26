@@ -98,7 +98,12 @@ def _one_variant(prompt: str, guest_png: bytes, reference: Optional[bytes],
             if config.FACE_SWAP_ENABLED:
                 swapped = replicate_client.face_swap(out, swap_face or guest_png)
                 if not swapped:
+                    # Кадр без переноса лица — сходство будет низким. Пишем громко:
+                    # 26.07.2026 такие кадры уходили гостю молча, и по логам было
+                    # не понять, почему «лицо не то».
+                    print("[swap] НЕ применён — кадр уходит без переноса лица")
                     return out
+                print("[swap] применён")
                 # доработка: лёгкий GFPGAN-блендинг — красивее кожа, но мылит рот
                 # (двоение двух по-разному нарисованных лиц), поэтому по умолчанию выкл
                 if config.SWAP_REFINE_ENABLED:

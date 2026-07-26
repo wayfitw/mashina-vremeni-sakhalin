@@ -300,6 +300,12 @@ def _generate_sync(loc: dict, guest_bytes: bytes, outfit: str):
         ranking = face_metric.rank_variants(guest_bytes, variants)
         if ranking:
             kept = [(i, s) for i, s in ranking if s >= config.FACE_SIM_THRESHOLD] or ranking[:1]
+            # Относительный фильтр вдобавок к абсолютному порогу. Кадр, у которого
+            # face-swap не применился (сходство ~0.53), проходит порог 0.45 и встаёт
+            # рядом с нормальным (~0.75) — гость может выбрать именно его и получить
+            # «не своё» лицо (случай 26.07.2026). Сильно хуже лучшего — в брак.
+            best = kept[0][1]
+            kept = [(i, s) for i, s in kept if s >= best - config.FACE_SIM_SPREAD] or kept[:1]
             variants = [variants[i] for i, _ in kept]
             sims = [round(s, 3) for _, s in kept]
             print(f"[rank] similarities: {[round(s, 3) for _, s in ranking]} → оставлено {len(variants)}")

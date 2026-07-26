@@ -35,17 +35,32 @@ def available() -> bool:
 
 
 def _read_output(output) -> bytes | None:
-    """Универсальное чтение результата Replicate (file-like / url / список)."""
+    """Универсальное чтение результата Replicate (file-like / url / список).
+
+    Скачивание повторяется: 26.07.2026 одиночный обрыв httpx на этом месте
+    молча оставил два кадра без свапа (сходство упало до 0.53) — модель
+    отработала и деньги списались, потерялся только сам байтовый результат."""
+    import time
+    url = None
     try:
         if hasattr(output, "read"):
             return output.read()
-        if hasattr(output, "url"):
-            return httpx.get(str(output.url), timeout=120).content
-        url = str(output[0]) if hasattr(output, "__getitem__") else str(output)
-        return httpx.get(url, timeout=120).content
-    except Exception:
-        print("[replicate] read error")
+        url = str(output.url) if hasattr(output, "url") else (
+            str(output[0]) if hasattr(output, "__getitem__") else str(output))
+    except Exception as exc:  # noqa: BLE001
+        print(f"[replicate] read error (разбор ответа): {type(exc).__name__}: {exc}")
         return None
+    for attempt in (1, 2, 3):
+        try:
+            r = httpx.get(url, timeout=120)
+            r.raise_for_status()
+            return r.content
+        except Exception as exc:  # noqa: BLE001
+            print(f"[replicate] read error (скачивание, попытка {attempt}/3): "
+                  f"{type(exc).__name__}: {exc}")
+            if attempt < 3:
+                time.sleep(3 * attempt)
+    return None
 
 
 def _shrink(image_bytes: bytes, max_side: int = 1600, quality: int = 88) -> bytes:
