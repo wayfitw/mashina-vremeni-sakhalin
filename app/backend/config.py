@@ -44,7 +44,9 @@ VARIANTS = int(os.environ.get("VARIANTS", "3"))
 # белое худи с принтом «ГОРЫ ЗОВУТ / САХАЛИН ОТВЕЧАЕТ» + белая бейсболка
 # с логотипом «САХАЛИН». Одинаково для мужского и женского образа.
 _MERCH_OUTFIT = (
-    'a clean white hoodie with a small blue skier emblem and below it the blue Cyrillic '
+    'a clean white hoodie with a REQUIRED blue emblem of a downhill skier on the chest — a '
+    'stylised skier leaning forward on skis with ski poles, printed in blue directly ABOVE '
+    'the text, always clearly visible and NEVER omitted — and below the skier the blue Cyrillic '
     'inscription "ГОРЫ ЗОВУТ" and "САХАЛИН ОТВЕЧАЕТ" printed in two neat centered lines of '
     'capital letters on the chest, and a white baseball cap. IMAGE 4 IS THE OFFICIAL BRAND LOGO for '
     'the front of the cap — reproduce it EXACTLY as in image 4. The cap logo has TWO parts and BOTH '
