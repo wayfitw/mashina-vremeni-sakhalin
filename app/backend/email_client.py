@@ -4,6 +4,7 @@ from __future__ import annotations
 import smtplib
 import ssl
 from email.message import EmailMessage
+from email.utils import formatdate, make_msgid
 from pathlib import Path
 
 import config
@@ -23,12 +24,23 @@ def send_card(to_email: str, card_path: Path) -> dict:
     msg["Subject"] = "Ваша карточка · «Я на Сахалине»"
     msg["From"] = f"Я на Сахалине <{config.SMTP_FROM}>"
     msg["To"] = to_email
+    # Date и Message-ID smtplib сам НЕ ставит, а их отсутствие — классический
+    # признак спам-скрипта для фильтров. Домен в Message-ID — от отправителя,
+    # а не hostname сервера (gross-tomato.ptr.network смотрелся бы подозрительно).
+    msg["Date"] = formatdate(localtime=True)
+    msg["Message-ID"] = make_msgid(domain=config.SMTP_FROM.split("@")[-1])
+    # Ссылка на цифровую версию: письмо перестаёт быть «голым вложением от
+    # незнакомца» — у фильтров это плохой паттерн, и гостю удобнее.
+    digital_url = f"{config.PUBLIC_BASE_URL}/d/{card_path.name}"
     msg.set_content(
-        "Привет!\n\n"
-        "Ваша персональная фото-карточка с AI-фотоинсталляции «Я на Сахалине» "
-        "прикреплена к этому письму.\n\n"
+        "Здравствуйте!\n\n"
+        "Вы сфотографировались на AI-фотоинсталляции «Я на Сахалине» — "
+        "ваша персональная фото-карточка прикреплена к этому письму.\n\n"
+        f"Цифровая версия также доступна по ссылке:\n{digital_url}\n\n"
         # тот же форум, что в подвале самой карточки (locations.json → card_footer)
-        "Форумы «Энергия Сахалина» и «Острова роста», 2026 г.\n",
+        "Форумы «Энергия Сахалина» и «Острова роста», 2026 г.\n\n"
+        "Вы получили это письмо, потому что указали свой адрес на стенде "
+        "фотоинсталляции. Отвечать на него не нужно.\n",
         charset="utf-8",
     )
     msg.add_attachment(
