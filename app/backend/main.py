@@ -25,6 +25,7 @@ import qrcode
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
 
 import config
 import gemini_client
@@ -107,21 +108,28 @@ def logos():
 
 @app.post("/api/check-photo")
 async def check_photo(photo: UploadFile = File(...)):
-    """Живая проверка кадра до генерации (для экрана съёмки): ok + причина."""
+    """Живая проверка кадра до генерации (для экрана съёмки): ok + причина.
+    Детекция лица — CPU-bound, поэтому в отдельном потоке."""
     data = await photo.read()
-    ok, reason, info = face_metric.check_input(data)
+    ok, reason, info = await run_in_threadpool(face_metric.check_input, data)
     return {"ok": ok, "reason": reason, "info": info}
 
 
 @app.post("/api/generate")
 async def generate(location: str = Form(...), photo: UploadFile = File(...),
                    outfit: str = Form("male")):
+    """Приём запроса. Тяжёлая часть уходит в отдельный поток: генерация занимает
+    ~2 минуты, и если выполнять её прямо здесь, event loop блокируется и сайт
+    целиком перестаёт отвечать — даже главная страница отдаёт 504."""
     loc = LOCATIONS.get(location)
     if not loc or not loc["enabled"]:
         raise HTTPException(400, "Локация недоступна")
 
     guest_bytes = await photo.read()
+    return await run_in_threadpool(_generate_sync, loc, guest_bytes, outfit)
 
+
+def _generate_sync(loc: dict, guest_bytes: bytes, outfit: str):
     # гейт входного фото: плохой кадр → просьба переснять, а не плохая карточка
     if config.FACE_GATE_ENABLED:
         ok, reason, info = face_metric.check_input(guest_bytes)
