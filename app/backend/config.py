@@ -50,9 +50,12 @@ _MERCH_OUTFIT = (
     'inscription "ГОРЫ ЗОВУТ" and "САХАЛИН ОТВЕЧАЕТ" printed in two neat centered lines of '
     'capital letters on the chest, and a white baseball cap. IMAGE 4 IS THE OFFICIAL BRAND LOGO for '
     'the front of the cap — reproduce it EXACTLY as in image 4. The cap logo has TWO parts and BOTH '
-    'must be present and clearly legible: (1) the navy shield emblem with the white lighthouse '
-    'silhouette, and (2) directly BELOW it the word "САХАЛИН" in bold dark capital letters, printed '
-    'large enough to read. NEVER omit the word "САХАЛИН" and never leave the shield alone. Keep the '
+    # Слово — первым пунктом: модель чаще доносит первый элемент списка, чем второй,
+    # и на кадрах 26.07.2026 щит без слова "САХАЛИН" встречался регулярно, наоборот — нет.
+    'must be present and clearly legible: (1) the word "САХАЛИН" in bold dark capital letters, '
+    'printed large enough to read, and (2) directly ABOVE the word the navy shield emblem with the '
+    'white lighthouse silhouette. The word "САХАЛИН" is the MOST IMPORTANT part: if only one part '
+    'fits, keep the word. NEVER omit the word "САХАЛИН" and never leave the shield alone. Keep the '
     'identical shapes and colours, scaled to the cap and following the curve of the fabric; do not '
     'redraw or invent a different emblem, and do not use image 4 anywhere else. Neutral light '
     'trousers and clean white sneakers. The Cyrillic prints must be spelled EXACTLY as given, '
