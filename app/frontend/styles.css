@@ -161,6 +161,9 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 .btn-primary:active{transform:scale(.96);}
 .btn-primary.big{font-size:min(4vw,2.6vh,26px);
   padding:clamp(15px,2.2vh,22px) clamp(28px,4vw,44px); border-radius:20px;}
+/* Фиолетовый вариант основной кнопки — «Загрузить с телефона» на экране съёмки:
+   та же форма и размер, что у «Снять», отличается только заливкой. */
+.btn-primary.btn-violet{background:linear-gradient(135deg,#7c3aed,#5b21b6);}
 .btn-ghost{
   background:transparent; color:#a9c4c9; border:1.5px solid #3a616b; border-radius:14px;
   padding:clamp(11px,1.5vh,14px) clamp(18px,2.5vw,26px);
