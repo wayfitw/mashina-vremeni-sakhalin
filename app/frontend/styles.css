@@ -209,23 +209,39 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 /* ═══════════════════════════════════════
    КАМЕРА
 ═══════════════════════════════════════ */
-.face-guide{position:absolute; left:50%; top:42%; transform:translate(-50%,-50%);
-  width:52%; aspect-ratio:3/4; border:3px dashed rgba(255,255,255,.85); border-radius:50%;
+/* Овал крупнее и опущен ниже: при 52%/42% подбородок и губы оказывались на самой
+   границе, гость подавался назад — и в кадр попадало мелкое лицо. Теперь нижний
+   край овала на 78% высоты кадра, рот заведомо внутри. */
+.face-guide{position:absolute; left:50%; top:45%; transform:translate(-50%,-50%);
+  width:66%; aspect-ratio:3/4; border:3px dashed rgba(255,255,255,.85); border-radius:50%;
   box-shadow:0 0 0 1000px rgba(7,29,36,.35); pointer-events:none; z-index:2;}
 /* Размер задаём по ВЫСОТЕ: раньше кадр считался от ширины (min(70vw,540px)) и в
    ландшафте iPad вырастал до 720px — экран съёмки не помещался, кнопка «Снять»
    уезжала за край и была недоступна. Третий член min() страхует по ширине,
    чтобы на узких экранах пропорция 3:4 не ломалась. */
-.camera-wrap{position:relative; height:min(52vh, 560px, 117vw); width:auto; aspect-ratio:3/4;
+/* margin-inline:auto обязателен: блок считает ширину из aspect-ratio и без него
+   прижимается к левому краю. Раньше это не бросалось в глаза — кадр был самым
+   широким элементом, и колонка ужималась по нему; теперь он уже кнопок. */
+.camera-wrap{position:relative; height:min(56vh, 600px, 117vw); width:auto; aspect-ratio:3/4;
   border-radius:24px; overflow:hidden;
   background:#000; box-shadow:0 12px 40px rgba(0,0,0,.5);
-  margin:var(--gap-v) 0 calc(var(--gap-v) + 8px);}
+  margin:var(--gap-v) auto calc(var(--gap-v) + 8px);}
 /* Порог 1100px закрывает iPad 12.9 в ландшафте (1366×1024), Full HD и ноутбуки:
    там кадру нужно уступить место заголовку и кнопкам, иначе экран съёмки уходит
    в прокрутку. В портрете (высота 1366) правило не срабатывает — кадр крупный. */
 @media (max-height:1100px){
-  .camera-wrap{height:min(45vh, 560px, 117vw);}
+  .camera-wrap{height:min(50vh, 600px, 117vw);}
 }
+/* Ноутбуки 768px: там даже поджатых отступов не хватает */
+@media (max-height:800px){
+  .camera-wrap{height:min(48vh, 600px, 117vw);}
+}
+/* Экран съёмки самый плотный. Чтобы кадр остался крупным (гость подходит ближе —
+   лицо в кадре крупнее — распознавание точнее), место отыгрываем на отступах,
+   а не на размере кадра. */
+#camera-mode .sub{margin-bottom:4px;}
+#camera-mode .camera-wrap{margin-top:6px;}
+#camera-mode .row{margin-top:4px;}
 #video{width:100%; height:100%; object-fit:cover; transform:scaleX(-1);}
 .cam-error{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; padding:20px; background:rgba(0,0,0,.6);}
 
