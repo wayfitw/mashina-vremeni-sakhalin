@@ -37,19 +37,34 @@ def available() -> bool:
 def _read_output(output) -> bytes | None:
     """Универсальное чтение результата Replicate (file-like / url / список).
 
-    Скачивание повторяется: 26.07.2026 одиночный обрыв httpx на этом месте
-    молча оставил два кадра без свапа (сходство упало до 0.53) — модель
-    отработала и деньги списались, потерялся только сам байтовый результат."""
+    Список распаковываем ЯВНО по типу. Прежняя проверка `hasattr(output,
+    "__getitem__")` ломалась на строках: у строки индексация тоже есть, поэтому
+    когда модель отдавала ссылку простой строкой, `output[0]` брал первый символ
+    и URL превращался в "h". Скачивание падало с UnsupportedProtocol, свап
+    отменялся, и гость получал кадр с лицом, нарисованным моделью — мягким и
+    непохожим (сходство ~0.6 вместо 0.75+). Именно так и было 27.07.2026."""
     import time
-    url = None
-    try:
-        if hasattr(output, "read"):
+
+    if isinstance(output, (list, tuple)):
+        if not output:
+            print("[replicate] read error: модель вернула пустой список")
+            return None
+        output = output[0]
+
+    # FileOutput и подобные объекты умеют read() — самый прямой путь.
+    if hasattr(output, "read"):
+        try:
             return output.read()
-        url = str(output.url) if hasattr(output, "url") else (
-            str(output[0]) if hasattr(output, "__getitem__") else str(output))
-    except Exception as exc:  # noqa: BLE001
-        print(f"[replicate] read error (разбор ответа): {type(exc).__name__}: {exc}")
+        except Exception as exc:  # noqa: BLE001
+            print(f"[replicate] read error (read): {type(exc).__name__}: {exc}")
+            return None
+
+    url = str(getattr(output, "url", output)).strip()
+    if not url.startswith(("http://", "https://")):
+        print(f"[replicate] read error: не похоже на ссылку "
+              f"(тип {type(output).__name__}, значение {url[:60]!r})")
         return None
+
     for attempt in (1, 2, 3):
         try:
             r = httpx.get(url, timeout=120)
