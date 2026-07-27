@@ -219,13 +219,15 @@ $('#retake').addEventListener('click', () => show('capture'));
 // через системный диалог (на iPad это AirPrint по Wi-Fi).
 $('#print').addEventListener('click', async () => {
   const fd = new FormData(); fd.append('card_id', state.card);
-  let printedOnServer = false;
+  let data = {};
   try {
     const r = await fetch('/api/print', { method: 'POST', body: fd });
-    printedOnServer = (await r.json()).printed === true;
-  } catch (_) { /* сервер печатать не умеет — идём через планшет */ }
+    data = await r.json();
+  } catch (_) { /* сервер недоступен — печатаем с планшета */ }
 
-  if (printedOnServer) {
+  // printed — напечатал сам сервер; queued — карточка встала в очередь, её
+  // заберёт программа у принтера. В обоих случаях гостю делать больше нечего.
+  if (data.printed || data.queued) {
     $('#done-note').textContent = 'Заберите карточку у стенда';
     finishFlow();
     return;

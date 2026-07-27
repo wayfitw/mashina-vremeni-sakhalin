@@ -476,21 +476,75 @@ def send_email_card(card_id: str = Form(...), email: str = Form(...)):
     return result
 
 
+def _queue_marker(card_id: str) -> Path:
+    """Метка «карточка ждёт печати». Простой файл рядом с карточкой: переживает
+    перезапуск сервиса и не требует базы."""
+    return config.OUTPUT / f"toprint_{card_id}.flag"
+
+
 @app.post("/api/print")
 def print_card(card_id: str = Form(...)):
+    """Кнопка «Отправить в печать» у гостя.
+
+    Печатать с сервера нельзя: он в другой стране, принтер стоит у киоска.
+    Поэтому карточка ставится в очередь, а программа оператора у принтера
+    забирает задания через /api/print-jobs и печатает их локально.
+    Серверная печать через lpr остаётся на случай, если приложение однажды
+    переедет на компьютер киоска — тогда PRINT_ENABLED=1 и очередь не нужна."""
     path = _output_file(card_id)
-    if not config.PRINT_ENABLED:
-        return {"printed": False, "reason": "Печать выключена (PRINT_ENABLED=0). Карточка сохранена.",
-                "path": str(path)}
-    cmd = ["lpr"]
-    if config.PRINT_PRINTER:
-        cmd += ["-P", config.PRINT_PRINTER]
-    cmd.append(str(path))
-    try:
-        subprocess.run(cmd, check=True, capture_output=True, timeout=30)
-    except Exception as exc:  # noqa: BLE001
-        raise HTTPException(500, f"Ошибка печати: {exc}")
-    return {"printed": True, "printer": config.PRINT_PRINTER or "default"}
+
+    if config.PRINT_ENABLED:
+        cmd = ["lpr"]
+        if config.PRINT_PRINTER:
+            cmd += ["-P", config.PRINT_PRINTER]
+        cmd.append(str(path))
+        try:
+            subprocess.run(cmd, check=True, capture_output=True, timeout=30)
+        except Exception as exc:  # noqa: BLE001
+            raise HTTPException(500, f"Ошибка печати: {exc}")
+        return {"printed": True, "printer": config.PRINT_PRINTER or "default"}
+
+    _queue_marker(path.name).write_text(str(time.time()), encoding="utf-8")
+    print(f"[print] в очередь: {path.name}")
+    return {"printed": False, "queued": True, "card_id": path.name}
+
+
+# ---- API очереди печати для программы оператора ----
+
+@app.get("/api/print-jobs")
+def print_jobs(key: str = "", include_done: bool = False):
+    """Список карточек, ожидающих печати. Забирает программа у принтера.
+
+    Отдаёт JSON, поэтому клиенту достаточно HTTP — ни SSH, ни доступа к серверу
+    не требуется. Ключ тот же, что у страницы очереди."""
+    if not config.PRINT_QUEUE_KEY or key != config.PRINT_QUEUE_KEY:
+        raise HTTPException(404, "Не найдено")
+
+    jobs = []
+    for flag in sorted(config.OUTPUT.glob("toprint_*.flag"), key=lambda p: p.stat().st_mtime):
+        card = flag.name[len("toprint_"):-len(".flag")]
+        if not (config.OUTPUT / card).is_file():
+            flag.unlink(missing_ok=True)      # карточку удалили — задание неактуально
+            continue
+        jobs.append({
+            "card_id": card,
+            "url": f"{config.PUBLIC_BASE_URL}/files/{card}",
+            "queued_at": round(flag.stat().st_mtime, 3),
+        })
+    return {"jobs": jobs, "count": len(jobs)}
+
+
+@app.post("/api/print-jobs/done")
+def print_job_done(card_id: str = Form(...), key: str = Form("")):
+    """Программа оператора подтверждает, что карточка напечатана."""
+    if not config.PRINT_QUEUE_KEY or key != config.PRINT_QUEUE_KEY:
+        raise HTTPException(404, "Не найдено")
+    name = os.path.basename(str(card_id))
+    flag = _queue_marker(name)
+    existed = flag.exists()
+    flag.unlink(missing_ok=True)
+    print(f"[print] напечатано: {name}" if existed else f"[print] задания не было: {name}")
+    return {"ok": True, "was_queued": existed}
 
 
 @app.get("/d/{card_id}", response_class=HTMLResponse)
