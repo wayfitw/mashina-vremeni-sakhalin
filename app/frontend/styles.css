@@ -4,9 +4,10 @@
      достаточно поменять здесь — контент нигде не заедет под полосу. */
   --bar-top:80px; --bar-bottom:100px;
   --gap-v:2.5vh;   /* вертикальный ритм: на низких экранах сжимается */
-  /* Безопасные зоны экрана. В режиме «на экран Домой» страница занимает весь
-     экран, включая полосу часов сверху и индикатор снизу — их надо обходить
-     явно, иначе заголовок лезет под часы, а снизу остаётся незакрашенная полоса. */
+  /* Безопасные зоны экрана — только для размера кадра камеры. В полосах и
+     отступах экранов env() стоит напрямую: часть версий Safari не разворачивает
+     env() внутри custom property, а там от этого зависит, дотянется ли полоса
+     до низа. Для камеры ошибка некритична — кадр окажется чуть крупнее. */
   --safe-top:env(safe-area-inset-top, 0px);
   --safe-bottom:env(safe-area-inset-bottom, 0px);
 }
@@ -28,9 +29,10 @@
 }
 
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-/* Цвет продублирован на html: полосу под индикатором внизу закрашивает именно
-   он, поэтому без этого там оставался белый просвет. */
-html{background:#071d24;}
+/* Зону под индикатором внизу закрашивает html, поэтому цвет здесь должен
+   совпадать с нижней полосой партнёров (rgb(6,18,38)), а не с фоном страницы:
+   с болотным #071d24 под полосой оставался заметный чужеродный кант. */
+html{background:#061226;}
 html,body{margin:0;height:100%;}
 body{
   font-family:-apple-system,'Helvetica Neue',Arial,sans-serif; color:var(--ink);
@@ -44,10 +46,10 @@ body{
 .screen{
   position:absolute; inset:0; display:none; flex-direction:column;
   align-items:center; justify-content:center; text-align:center;
-  padding:calc(var(--bar-top) + var(--safe-top) + var(--gap-v))
-          max(5vw, env(safe-area-inset-left))
-          calc(var(--bar-bottom) + var(--safe-bottom) + var(--gap-v))
-          max(5vw, env(safe-area-inset-right));
+  padding:calc(var(--bar-top) + env(safe-area-inset-top, 0px) + var(--gap-v))
+          max(5vw, env(safe-area-inset-left, 0px))
+          calc(var(--bar-bottom) + env(safe-area-inset-bottom, 0px) + var(--gap-v))
+          max(5vw, env(safe-area-inset-right, 0px));
   animation:fade .45s ease; z-index:2;
   /* Если контент всё же выше экрана — даём прокрутить, а не срезаем кнопки.
      С обычным center верх уезжает за край и становится недоступен, поэтому
@@ -86,8 +88,8 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 .global-topbar{
   position:fixed; top:0; left:0; right:0; z-index:20;
   display:flex; align-items:center;
-  padding:var(--safe-top) max(24px, env(safe-area-inset-left)) 0;
-  height:calc(var(--bar-top) - 16px + var(--safe-top));
+  padding:env(safe-area-inset-top, 0px) max(24px, env(safe-area-inset-left, 0px)) 0;
+  height:calc(var(--bar-top) - 16px + env(safe-area-inset-top, 0px));
   transition:background .35s ease;
   pointer-events:none;
 }
@@ -107,7 +109,7 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
   -webkit-backdrop-filter:blur(14px);
   border-bottom:1px solid rgba(255,255,255,.1);
   box-shadow:0 2px 20px rgba(0,0,0,.5);
-  height:calc(var(--bar-top) + var(--safe-top));
+  height:calc(var(--bar-top) + env(safe-area-inset-top, 0px));
   pointer-events:auto;
 }
 .global-topbar.inner .global-topbar-title{
@@ -144,9 +146,13 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
   backdrop-filter:blur(14px);
   -webkit-backdrop-filter:blur(14px);
   border-top:1px solid rgba(255,255,255,.1);
-  padding:8px max(20px, env(safe-area-inset-left)) calc(10px + var(--safe-bottom));
+  /* env() здесь напрямую, а не через переменную: часть версий Safari не
+     разворачивает env() внутри custom property, и полоса тогда не дотягивалась
+     до низа — под ней оставался кант цвета фона страницы. */
+  padding:8px max(20px, env(safe-area-inset-left, 0px))
+          calc(10px + env(safe-area-inset-bottom, 0px));
   display:flex; flex-direction:column; align-items:center; gap:6px;
-  min-height:calc(var(--bar-bottom) + var(--safe-bottom));
+  min-height:calc(var(--bar-bottom) + env(safe-area-inset-bottom, 0px));
   justify-content:center;
 }
 .global-partners-label{
