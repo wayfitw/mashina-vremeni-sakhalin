@@ -213,16 +213,46 @@ async function chooseVariant(v, imgEl) {
 $('#retake').addEventListener('click', () => show('capture'));
 
 // ─── Печать ───────────────────────────────────────────────────
+// Два пути. Серверный (lpr) работает, только когда приложение крутится на том же
+// компьютере, к которому подключён принтер. У нас сервер в другой стране, а принтер
+// будет стоять у киоска — поэтому основной путь второй: печать из самого планшета
+// через системный диалог (на iPad это AirPrint по Wi-Fi).
 $('#print').addEventListener('click', async () => {
   const fd = new FormData(); fd.append('card_id', state.card);
+  let printedOnServer = false;
   try {
     const r = await fetch('/api/print', { method: 'POST', body: fd });
-    const data = await r.json();
-    $('#done-note').textContent = data.printed
-      ? 'Заберите карточку у стенда' : 'Печать выключена в настройках — карточка сохранена';
+    printedOnServer = (await r.json()).printed === true;
+  } catch (_) { /* сервер печатать не умеет — идём через планшет */ }
+
+  if (printedOnServer) {
+    $('#done-note').textContent = 'Заберите карточку у стенда';
     finishFlow();
-  } catch (e) { alert('Ошибка печати'); }
+    return;
+  }
+  printFromDevice();
 });
+
+// Печать с устройства: на печать уходит только картинка карточки — интерфейс
+// скрывается правилами @media print в styles.css.
+function printFromDevice() {
+  const img = document.getElementById('card-img');
+  if (!img || !img.getAttribute('src')) { alert('Карточка ещё не готова'); return; }
+  let done = false;
+  const finish = () => {
+    if (done) return;              // afterprint и таймер не должны сработать оба
+    done = true;
+    window.removeEventListener('afterprint', finish);
+    $('#done-note').textContent = 'Заберите карточку у стенда';
+    finishFlow();
+  };
+  window.addEventListener('afterprint', finish);
+  // Подстраховка: на iOS afterprint приходит не всегда. Задание к этому моменту
+  // уже отрисовано и живёт отдельно от страницы, поэтому вернуть киоск к началу
+  // безопасно, даже если гость ещё выбирает принтер.
+  setTimeout(finish, 10000);
+  window.print();
+}
 $('#finish').addEventListener('click', finishFlow);
 
 function finishFlow() {

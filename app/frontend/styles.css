@@ -398,6 +398,24 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
   .email-input{padding:10px 14px;}
 }
 
+/* ═══════════════════════════════════════
+   ПЕЧАТЬ С УСТРОЙСТВА (на iPad — AirPrint)
+   На лист уходит только карточка: интерфейс, фон-видео и полосы логотипов
+   скрыты, поля страницы убраны, картинка вписывается в лист целиком.
+═══════════════════════════════════════ */
+@media print{
+  @page{margin:0;}
+  html,body{height:auto; background:#fff; overflow:visible;}
+  body *{visibility:hidden;}
+  .site-bg-video,.site-bg-overlay,.global-topbar,.global-partners{display:none !important;}
+  #card-img,#card-img *{visibility:visible;}
+  #card-img{
+    position:fixed; inset:0; margin:auto;
+    max-width:100%; max-height:100%; width:auto; height:auto;
+    box-shadow:none; border-radius:0;
+  }
+}
+
 .check{width:clamp(72px,11vh,110px); height:clamp(72px,11vh,110px); border-radius:50%;
   background:#1f9d63; color:#fff; font-size:clamp(42px,6.4vh,64px);
   display:flex; align-items:center; justify-content:center; margin-bottom:16px;
