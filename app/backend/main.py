@@ -506,6 +506,67 @@ a{{display:inline-block;margin:12px;padding:14px 24px;background:#fff;color:#0b5
 <img src='/files/{card_id}'><br><a href='/files/{card_id}' download>Скачать фото</a></body></html>"""
 
 
+# ---------------- Очередь печати (для оператора у принтера) ----------------
+
+@app.get("/print-queue", response_class=HTMLResponse)
+def print_queue(key: str = "", limit: int = 40, kind: str = "card"):
+    """Страница со свежими карточками для компьютера, к которому подключён принтер.
+
+    Печать идёт не с сервера: он в другой стране, а принтер стоит у киоска.
+    Оператор открывает эту страницу в браузере, видит новые карточки по мере
+    их появления и печатает нужную штатным драйвером. Никаких доступов к коду
+    и серверу для этого не требуется.
+
+    Доступ по ключу: на странице лица гостей, и открытым её оставлять нельзя."""
+    if not config.PRINT_QUEUE_KEY or key != config.PRINT_QUEUE_KEY:
+        raise HTTPException(404, "Не найдено")
+
+    prefix = "gen_" if kind == "photo" else "card_"
+    files = sorted((p for p in config.OUTPUT.glob(f"{prefix}*.png") if p.is_file()),
+                   key=lambda p: p.stat().st_mtime, reverse=True)[:max(1, min(limit, 200))]
+
+    cards = "".join(
+        f"<figure><a href='/files/{p.name}' target='_blank'>"
+        f"<img src='/files/{p.name}' loading='lazy'></a>"
+        f"<figcaption>{time.strftime('%H:%M:%S', time.localtime(p.stat().st_mtime))}"
+        f" · {p.stat().st_size // 1024} КБ<br>"
+        f"<a class='dl' href='/files/{p.name}' download>Скачать</a></figcaption></figure>"
+        for p in files
+    ) or "<p class='empty'>Пока пусто — карточки появятся здесь сразу после съёмки.</p>"
+
+    other = "photo" if kind == "card" else "card"
+    other_name = "оригиналы без рамки" if kind == "card" else "готовые карточки"
+
+    return HTMLResponse(f"""<!doctype html><html lang=ru><head><meta charset=utf-8>
+<meta name=viewport content='width=device-width,initial-scale=1'>
+<meta http-equiv=refresh content='15'>
+<title>Очередь печати · Я на Сахалине</title>
+<style>
+ body{{margin:0;background:#0e1a22;color:#e8f1f3;font-family:-apple-system,Arial,sans-serif}}
+ header{{position:sticky;top:0;background:#061226;padding:14px 20px;display:flex;
+   align-items:center;gap:16px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.12)}}
+ h1{{font-size:17px;margin:0;font-weight:800;letter-spacing:1px}}
+ .hint{{color:#8fb0b8;font-size:13px}}
+ a.sw{{color:#5fd0df;font-size:13px}}
+ .grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+   gap:16px;padding:20px}}
+ figure{{margin:0;background:#16242c;border-radius:12px;overflow:hidden;
+   border:1px solid rgba(255,255,255,.08)}}
+ figure img{{width:100%;display:block;background:#fff}}
+ figcaption{{padding:8px 10px;font-size:12px;color:#9fbcc4;text-align:center}}
+ a.dl{{display:inline-block;margin-top:6px;padding:6px 14px;background:#14707f;
+   color:#fff;border-radius:8px;text-decoration:none;font-weight:700}}
+ .empty{{padding:40px;text-align:center;color:#8fb0b8}}
+</style></head><body>
+<header>
+  <h1>ОЧЕРЕДЬ ПЕЧАТИ</h1>
+  <span class=hint>{len(files)} шт. · обновляется само каждые 15 сек · новые сверху</span>
+  <a class=sw href='/print-queue?key={key}&kind={other}'>показать {other_name}</a>
+</header>
+<div class=grid>{cards}</div>
+</body></html>""", headers={"Cache-Control": "no-store"})
+
+
 # ---------------- Статика ----------------
 
 @app.get("/", response_class=HTMLResponse)

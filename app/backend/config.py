@@ -129,6 +129,10 @@ GEN_MODE = os.environ.get("GEN_MODE", "composite").strip()
 PRINT_ENABLED = os.environ.get("PRINT_ENABLED", "0").strip() in ("1", "true", "yes")
 PRINT_PRINTER = os.environ.get("PRINT_PRINTER", "").strip()
 
+# Ключ доступа к странице /print-queue — она для оператора у принтера, и на ней
+# лица гостей, поэтому без ключа страница отдаёт 404. Пусто → страница выключена.
+PRINT_QUEUE_KEY = os.environ.get("PRINT_QUEUE_KEY", "").strip()
+
 # Публичный базовый URL для QR (в проде — домен; локально — адрес мини-ПК)
 PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "http://localhost:8000").rstrip("/")
 
