@@ -4,6 +4,11 @@
      достаточно поменять здесь — контент нигде не заедет под полосу. */
   --bar-top:80px; --bar-bottom:100px;
   --gap-v:2.5vh;   /* вертикальный ритм: на низких экранах сжимается */
+  /* Безопасные зоны экрана. В режиме «на экран Домой» страница занимает весь
+     экран, включая полосу часов сверху и индикатор снизу — их надо обходить
+     явно, иначе заголовок лезет под часы, а снизу остаётся незакрашенная полоса. */
+  --safe-top:env(safe-area-inset-top, 0px);
+  --safe-bottom:env(safe-area-inset-bottom, 0px);
 }
 /* Ноутбуки и iPad в ландшафте: по высоте места мало, полосы ужимаем */
 @media (max-height:900px){
@@ -12,8 +17,20 @@
 @media (max-height:760px){
   :root{ --bar-top:56px; --bar-bottom:70px; --gap-v:1vh; }
 }
+/* Телефон: экран узкий и высокий, полосы съедали столько, что контент не
+   помещался и кнопки уходили под нижнюю полосу. Полосы делаем компактными. */
+@media (max-width:640px){
+  :root{ --bar-top:48px; --bar-bottom:62px; --gap-v:1vh; }
+  .global-partners-label{display:none;}   /* подпись съедает строку, логотипы говорят сами */
+  .global-partners{gap:0; padding-top:6px;}
+  .global-partners-logos img{padding:0 clamp(6px,2vw,14px);}
+  .topbar-logos{display:none !important;} /* в узкий топбар они всё равно не влезают */
+}
 
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+/* Цвет продублирован на html: полосу под индикатором внизу закрашивает именно
+   он, поэтому без этого там оставался белый просвет. */
+html{background:#071d24;}
 html,body{margin:0;height:100%;}
 body{
   font-family:-apple-system,'Helvetica Neue',Arial,sans-serif; color:var(--ink);
@@ -27,9 +44,9 @@ body{
 .screen{
   position:absolute; inset:0; display:none; flex-direction:column;
   align-items:center; justify-content:center; text-align:center;
-  padding:calc(var(--bar-top) + var(--gap-v))
+  padding:calc(var(--bar-top) + var(--safe-top) + var(--gap-v))
           max(5vw, env(safe-area-inset-left))
-          calc(var(--bar-bottom) + var(--gap-v))
+          calc(var(--bar-bottom) + var(--safe-bottom) + var(--gap-v))
           max(5vw, env(safe-area-inset-right));
   animation:fade .45s ease; z-index:2;
   /* Если контент всё же выше экрана — даём прокрутить, а не срезаем кнопки.
@@ -64,10 +81,13 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 /* ═══════════════════════════════════════
    ГЛОБАЛЬНЫЙ ТОПБАР
 ═══════════════════════════════════════ */
+/* padding-top на безопасную зону: в полноэкранном режиме заголовок иначе
+   оказывается прямо под часами и значком батареи. */
 .global-topbar{
   position:fixed; top:0; left:0; right:0; z-index:20;
   display:flex; align-items:center;
-  padding:0 max(24px, env(safe-area-inset-left)); height:calc(var(--bar-top) - 16px);
+  padding:var(--safe-top) max(24px, env(safe-area-inset-left)) 0;
+  height:calc(var(--bar-top) - 16px + var(--safe-top));
   transition:background .35s ease;
   pointer-events:none;
 }
@@ -87,7 +107,7 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
   -webkit-backdrop-filter:blur(14px);
   border-bottom:1px solid rgba(255,255,255,.1);
   box-shadow:0 2px 20px rgba(0,0,0,.5);
-  height:var(--bar-top);
+  height:calc(var(--bar-top) + var(--safe-top));
   pointer-events:auto;
 }
 .global-topbar.inner .global-topbar-title{
@@ -124,10 +144,9 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
   backdrop-filter:blur(14px);
   -webkit-backdrop-filter:blur(14px);
   border-top:1px solid rgba(255,255,255,.1);
-  padding:8px max(20px, env(safe-area-inset-left))
-          calc(10px + env(safe-area-inset-bottom));
+  padding:8px max(20px, env(safe-area-inset-left)) calc(10px + var(--safe-bottom));
   display:flex; flex-direction:column; align-items:center; gap:6px;
-  min-height:var(--bar-bottom);
+  min-height:calc(var(--bar-bottom) + var(--safe-bottom));
   justify-content:center;
 }
 .global-partners-label{
@@ -230,7 +249,9 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 /* margin-inline:auto обязателен: блок считает ширину из aspect-ratio и без него
    прижимается к левому краю. Раньше это не бросалось в глаза — кадр был самым
    широким элементом, и колонка ужималась по нему; теперь он уже кнопок. */
-.camera-wrap{position:relative; height:min(56vh, 600px, 117vw); width:auto; aspect-ratio:3/4;
+.camera-wrap{position:relative;
+  height:min(calc(56vh - var(--safe-top) - var(--safe-bottom)), 600px, 117vw);
+  width:auto; aspect-ratio:3/4;
   border-radius:24px; overflow:hidden;
   background:#000; box-shadow:0 12px 40px rgba(0,0,0,.5);
   margin:var(--gap-v) auto calc(var(--gap-v) + 8px);}
@@ -238,11 +259,11 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
    там кадру нужно уступить место заголовку и кнопкам, иначе экран съёмки уходит
    в прокрутку. В портрете (высота 1366) правило не срабатывает — кадр крупный. */
 @media (max-height:1100px){
-  .camera-wrap{height:min(50vh, 600px, 117vw);}
+  .camera-wrap{height:min(calc(50vh - var(--safe-top) - var(--safe-bottom)), 600px, 117vw);}
 }
 /* Ноутбуки 768px: там даже поджатых отступов не хватает */
 @media (max-height:800px){
-  .camera-wrap{height:min(48vh, 600px, 117vw);}
+  .camera-wrap{height:min(calc(48vh - var(--safe-top) - var(--safe-bottom)), 600px, 117vw);}
 }
 /* Экран съёмки самый плотный. Чтобы кадр остался крупным (гость подходит ближе —
    лицо в кадре крупнее — распознавание точнее), место отыгрываем на отступах,
