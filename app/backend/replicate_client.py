@@ -312,7 +312,11 @@ def refine_swap(image_bytes: bytes, alpha: float = 0.3) -> bytes | None:
 # работающих nano-banana и GFPGAN рядом. Это сбой на стороне модели.
 # codeplugtech/face-swap — тот же inswapper с теми же входами
 # (input_image, swap_image), 2.5 млн запусков.
-FACE_SWAP_FALLBACK = "codeplugtech/face-swap"
+# Версия закреплена обязательно: run() по одному имени работает только для
+# официальных моделей, для комьюнити-моделей Replicate отвечает 404 — ровно так
+# резервная и не сработала в ночь на 28.07 (в логах face-swap failed ... 404).
+FACE_SWAP_FALLBACK = ("codeplugtech/face-swap:"
+                      "278a81e7ebb22db98bcba54de985d22cc1abeead2754eb1f2af717247be69b34")
 
 
 def _face_swap_sync(target: bytes, face: bytes, model: str) -> bytes | None:
