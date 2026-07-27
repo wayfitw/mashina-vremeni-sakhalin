@@ -149,10 +149,12 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
   /* env() здесь напрямую, а не через переменную: часть версий Safari не
      разворачивает env() внутри custom property, и полоса тогда не дотягивалась
      до низа — под ней оставался кант цвета фона страницы. */
+  /* Половина безопасной зоны, а не вся: индикатор — тонкая полоска у самого
+     края, и полные 34px оставляли под логотипами заметный пустой провал. */
   padding:8px max(20px, env(safe-area-inset-left, 0px))
-          calc(10px + env(safe-area-inset-bottom, 0px));
+          calc(6px + env(safe-area-inset-bottom, 0px) * 0.5);
   display:flex; flex-direction:column; align-items:center; gap:6px;
-  min-height:calc(var(--bar-bottom) + env(safe-area-inset-bottom, 0px));
+  min-height:calc(var(--bar-bottom) + env(safe-area-inset-bottom, 0px) * 0.5);
   justify-content:center;
 }
 .global-partners-label{
@@ -354,8 +356,13 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
    от одной линии на любом экране. */
 .card-view{display:flex; gap:clamp(18px,3vw,40px); align-items:flex-start;
   flex-wrap:wrap; justify-content:center; width:100%;}
-#card-img{height:min(62vh,540px); width:auto; max-width:min(42vw,380px);
-  object-fit:contain; border-radius:14px; box-shadow:0 14px 44px rgba(0,0,0,.5); background:#fff;}
+/* Только ограничения, без жёсткой height. Раньше высота задавалась намертво
+   (62vh), а ширину на телефоне резало 42vw ≈ 165px — картинка вписывалась по
+   ширине, и сверху-снизу оставались широкие белые поля от фона элемента.
+   Теперь обе стороны — максимумы, размер считается по пропорции карточки. */
+#card-img{max-height:min(62vh,540px); max-width:min(88vw,380px);
+  width:auto; height:auto;
+  border-radius:14px; box-shadow:0 14px 44px rgba(0,0,0,.5); background:#fff;}
 .card-side{display:flex; flex-direction:column; align-items:center; gap:8px;
   width:min(100%,340px);}
 /* QR опущен вниз, а подпись под ним прижата к кнопке печати: раньше между
