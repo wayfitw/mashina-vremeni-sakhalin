@@ -307,13 +307,24 @@ def refine_swap(image_bytes: bytes, alpha: float = 0.3) -> bytes | None:
         return None
 
 
-def _face_swap_sync(target: bytes, face: bytes) -> bytes | None:
+# Резервная модель свапа. 27.07.2026 cdingram/face-swap начал завершаться со
+# статусом succeeded, но с output=None — каждый запуск подряд, при исправно
+# работающих nano-banana и GFPGAN рядом. Это сбой на стороне модели.
+# codeplugtech/face-swap — тот же inswapper с теми же входами
+# (input_image, swap_image), 2.5 млн запусков.
+FACE_SWAP_FALLBACK = "codeplugtech/face-swap"
+
+
+def _face_swap_sync(target: bytes, face: bytes, model: str) -> bytes | None:
     if not _client:
         return None
-    output = _client.run(FACE_SWAP_MODEL, input={
+    output = _client.run(model, input={
         "input_image": _data_uri(target),
         "swap_image": _data_uri(face),
     })
+    if output is None:
+        print(f"[replicate] {model.split(':')[0]}: succeeded, но output пуст")
+        return None
     return _read_output(output)
 
 
@@ -324,18 +335,24 @@ def face_swap(target: bytes, face: bytes) -> bytes | None:
     if not _client:
         return None
     import time
-    for attempt in range(2):
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-            fut = pool.submit(_face_swap_sync, target, face)
-            try:
-                return fut.result(timeout=120)
-            except Exception as exc:  # noqa: BLE001
-                if "429" in str(exc) and attempt == 0:
-                    print("[replicate] face-swap 429, жду 25с")
-                    time.sleep(25)
-                    continue
-                print(f"[replicate] face-swap failed: {exc}")
-                return None
+    for model in (FACE_SWAP_MODEL, FACE_SWAP_FALLBACK):
+        for attempt in range(2):
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                fut = pool.submit(_face_swap_sync, target, face, model)
+                try:
+                    out = fut.result(timeout=120)
+                except Exception as exc:  # noqa: BLE001
+                    if "429" in str(exc) and attempt == 0:
+                        print("[replicate] face-swap 429, жду 25с")
+                        time.sleep(25)
+                        continue
+                    print(f"[replicate] face-swap failed ({model.split(':')[0]}): {exc}")
+                    out = None
+                if out:
+                    return out
+                break   # пустой результат повторять на той же модели бессмысленно
+        if model == FACE_SWAP_MODEL:
+            print(f"[replicate] свап через {model.split(':')[0]} без результата → резервная")
     return None
 
 
