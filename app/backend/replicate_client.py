@@ -335,37 +335,28 @@ def _face_swap_sync(target: bytes, face: bytes, model: str) -> bytes | None:
 def face_swap(target: bytes, face: bytes) -> bytes | None:
     """Финальный шаг: переносит НАСТОЯЩЕЕ лицо гостя на сгенерированный кадр.
     Nano-banana ставит сцену/тело/одежду, swap гарантирует сходство 1:1.
-    None при ошибке — тогда отдаём кадр без свапа (лучше, чем ничего).
-
-    До четырёх попыток: по две на модель. Пустой ответ ПОВТОРЯЕТСЯ на той же
-    модели — сбой cdingram плавающий (27.07 пустота и успех чередовались в
-    соседних генерациях), так что вторая попытка часто удаётся. 429 тоже
-    ретраится с паузой. Только после этого — резервная модель тем же порядком."""
+    None при ошибке — тогда отдаём кадр без свапа (лучше, чем ничего)."""
     if not _client:
         return None
     import time
     for model in (FACE_SWAP_MODEL, FACE_SWAP_FALLBACK):
-        short = model.split(":")[0]
         for attempt in range(2):
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
                 fut = pool.submit(_face_swap_sync, target, face, model)
                 try:
                     out = fut.result(timeout=120)
                 except Exception as exc:  # noqa: BLE001
-                    msg = str(exc)
-                    print(f"[replicate] face-swap ({short}, попытка {attempt + 1}/2): "
-                          f"{msg.splitlines()[0][:90]}")
-                    if attempt == 0:
-                        time.sleep(25 if "429" in msg else 4)
+                    if "429" in str(exc) and attempt == 0:
+                        print("[replicate] face-swap 429, жду 25с")
+                        time.sleep(25)
                         continue
+                    print(f"[replicate] face-swap failed ({model.split(':')[0]}): {exc}")
                     out = None
-            if out:
-                return out
-            if attempt == 0:
-                print(f"[replicate] {short}: пусто, повторяю через 4с")
-                time.sleep(4)
+                if out:
+                    return out
+                break   # пустой результат повторять на той же модели бессмысленно
         if model == FACE_SWAP_MODEL:
-            print(f"[replicate] свап через {short} без результата → резервная")
+            print(f"[replicate] свап через {model.split(':')[0]} без результата → резервная")
     return None
 
 
