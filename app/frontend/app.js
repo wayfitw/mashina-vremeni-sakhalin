@@ -120,9 +120,29 @@ function stopCamera() {
 $('#shoot').addEventListener('click', () => {
   const v = $('#video');
   if (!v.videoWidth) return;
+
+  // Снимаем РОВНО то, что гость видел в овале. Превью показывает видео через
+  // object-fit:cover в рамке 3:4, то есть от кадра 4:3 видно только центральные
+  // 56% по ширине. Раньше в обработку уходил весь широкий кадр целиком: лицо
+  // оказывалось в 1.8 раза мельче, чем гость видел, и в снимок попадали края,
+  // где у сверхширокой фронталки iPad искажения максимальны.
+  const wrap = document.querySelector('.camera-wrap').getBoundingClientRect();
+  const boxAspect = wrap.width / wrap.height;
+  const videoAspect = v.videoWidth / v.videoHeight;
+  let sw, sh;
+  if (videoAspect > boxAspect) {          // кадр шире рамки — режем по бокам
+    sh = v.videoHeight;
+    sw = Math.round(sh * boxAspect);
+  } else {                                // кадр уже рамки — режем сверху и снизу
+    sw = v.videoWidth;
+    sh = Math.round(sw / boxAspect);
+  }
+  const sx = Math.round((v.videoWidth - sw) / 2);
+  const sy = Math.round((v.videoHeight - sh) / 2);
+
   const c = document.createElement('canvas');
-  c.width = v.videoWidth; c.height = v.videoHeight;
-  c.getContext('2d').drawImage(v, 0, 0);
+  c.width = sw; c.height = sh;
+  c.getContext('2d').drawImage(v, sx, sy, sw, sh, 0, 0, sw, sh);
   c.toBlob(b => generate(b), 'image/jpeg', 0.92);
 });
 
