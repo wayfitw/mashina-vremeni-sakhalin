@@ -77,6 +77,11 @@ def _start_output_cleanup():
 
     def _cleanup_loop():
         ttl = config.DIGITAL_TTL_HOURS * 3600
+        # Отладочные dbg_* (исходник + два кропа, ~4 МБ на гостя) живут отдельно и
+        # заметно меньше: 28.07.2026 они занимали 1.5 ГБ из 1.8 ГБ всей папки.
+        # Карточки гостю нужны все 72ч — по QR он забирает их позже, а отладка
+        # нужна только чтобы разобрать свежую жалобу.
+        dbg_ttl = config.DEBUG_TTL_HOURS * 3600
         while True:
             try:
                 now = time.time()
@@ -84,15 +89,22 @@ def _start_output_cleanup():
                 for jid in [k for k, v in _jobs.items()
                             if v["status"] != "running" and now - v["created_at"] > JOB_TTL_SEC]:
                     _jobs.pop(jid, None)
-                removed = 0
+                removed = dbg_removed = 0
                 for p in config.OUTPUT.iterdir():
                     if p.name == ".gitkeep" or not p.is_file():
                         continue
-                    if now - p.stat().st_mtime > ttl:
+                    age = now - p.stat().st_mtime
+                    if p.name.startswith(("dbg_", "rej_")):
+                        if age > dbg_ttl:
+                            p.unlink(missing_ok=True)
+                            dbg_removed += 1
+                    elif age > ttl:
                         p.unlink(missing_ok=True)
                         removed += 1
-                if removed:
-                    print(f"[cleanup] удалено файлов старше {config.DIGITAL_TTL_HOURS}ч: {removed}")
+                if removed or dbg_removed:
+                    print(f"[cleanup] удалено: карточек и кадров старше "
+                          f"{config.DIGITAL_TTL_HOURS}ч — {removed}, "
+                          f"отладочных старше {config.DEBUG_TTL_HOURS}ч — {dbg_removed}")
             except Exception as exc:  # noqa: BLE001 — уборка не должна ронять сервис
                 print(f"[cleanup] ошибка: {exc}")
             time.sleep(3600)

@@ -138,6 +138,10 @@ PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "http://localhost:8000").rst
 
 # Срок хранения цифровой версии (часы) — для автоудаления (в проде)
 DIGITAL_TTL_HOURS = int(os.environ.get("DIGITAL_TTL_HOURS", "72"))
+# Отладочные dbg_* и отклонённые rej_* — свой, более короткий срок: их объём
+# втрое больше самих карточек (~4 МБ на гостя), а нужны они только для разбора
+# свежей жалобы. Гостю они не отдаются.
+DEBUG_TTL_HOURS = int(os.environ.get("DEBUG_TTL_HOURS", "12"))
 
 # --- Email (отправка карточки гостю, Яндекс SMTP) ---
 # Письма шлются только когда задан SMTP_PASS (App-пароль из Яндекс ID:
