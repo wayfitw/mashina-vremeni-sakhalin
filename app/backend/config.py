@@ -143,6 +143,13 @@ DIGITAL_TTL_HOURS = int(os.environ.get("DIGITAL_TTL_HOURS", "72"))
 # свежей жалобы. Гостю они не отдаются.
 DEBUG_TTL_HOURS = int(os.environ.get("DEBUG_TTL_HOURS", "12"))
 
+# Пороги, ниже которых входное фото считается слабым и его стоит прогнать через
+# GFPGAN. Выше — не трогаем: он синтезирует лицо заново и на хорошем снимке даёт
+# пластиковую кожу и раздутые черты. Ориентиры по замерам: вебка даёт лицо
+# 250-420 px и резкость 58-131, телефон — 630-780 px и 212-649.
+FACE_ENHANCE_MAX_PX = int(os.environ.get("FACE_ENHANCE_MAX_PX", "450"))
+FACE_ENHANCE_MAX_SHARP = float(os.environ.get("FACE_ENHANCE_MAX_SHARP", "140"))
+
 # --- Email (отправка карточки гостю, Яндекс SMTP) ---
 # Письма шлются только когда задан SMTP_PASS (App-пароль из Яндекс ID:
 # Безопасность → Пароли приложений → Почта). Без него /api/send-email

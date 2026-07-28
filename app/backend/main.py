@@ -213,6 +213,7 @@ def generate_status(job_id: str):
 
 
 def _generate_sync(loc: dict, guest_bytes: bytes, outfit: str):
+    info: dict = {}
     # гейт входного фото: плохой кадр → просьба переснять, а не плохая карточка
     if config.FACE_GATE_ENABLED:
         ok, reason, info = face_metric.check_input(guest_bytes)
@@ -239,13 +240,28 @@ def _generate_sync(loc: dict, guest_bytes: bytes, outfit: str):
     # с det_score 0.85. Идентичность та же, а лицо в естественном контексте.
     face_raw = guest_bytes
 
-    # улучшение входа с вебкамеры: GFPGAN чистит шум/блюр и делает лицо красивее
+    # GFPGAN — только для СЛАБОГО входа (шумная вебка, мелкое лицо).
+    #
+    # Он не «подчищает», а заново синтезирует лицо. На кадре с вебки это выигрыш,
+    # но на резком фото с телефона даёт свой фирменный вид: гладкая пластиковая
+    # кожа и раздутые черты. А его результат уходит в nano-banana как эталон
+    # внешности — отсюда жалобы «мультяшное и опухшее лицо» (28.07.2026).
+    # Замер того же дня: у всех кадров лицо 630–780 px и резкость 212–649,
+    # то есть улучшать было нечего, а GFPGAN отрабатывал на каждом.
     if config.FACE_ENHANCE_ENABLED:
-        import replicate_client
-        enhanced = replicate_client.enhance_face(guest_bytes)
-        if enhanced:
-            guest_bytes = enhanced
-            print("[enhance] лицо улучшено через GFPGAN")
+        face_px = (info or {}).get("face_px", 0) if config.FACE_GATE_ENABLED else 0
+        sharp = (info or {}).get("face_sharp", 0) if config.FACE_GATE_ENABLED else 0
+        нужен = (face_px < config.FACE_ENHANCE_MAX_PX
+                 or sharp < config.FACE_ENHANCE_MAX_SHARP)
+        if нужен:
+            import replicate_client
+            enhanced = replicate_client.enhance_face(guest_bytes)
+            if enhanced:
+                guest_bytes = enhanced
+                print(f"[enhance] GFPGAN применён (лицо {face_px}px, резкость {sharp})")
+        else:
+            print(f"[enhance] пропущен — фото и так хорошее "
+                  f"(лицо {face_px}px, резкость {sharp})")
 
     # два кадра гостя: крупное лицо (для точных черт) + корпус (для телосложения)
     face_png, body_png = facecrop.crops(guest_bytes)
