@@ -140,11 +140,20 @@ def check_input(image_bytes: bytes) -> tuple[bool, str, dict]:
     faces = _faces(image_bytes)
     if not faces:
         return False, "Лицо не распознано — встаньте прямо перед камерой.", {}
-    if len(faces) > 1:
-        return False, "В кадре несколько лиц — нужно, чтобы был один человек.", {"faces": len(faces)}
-    f = faces[0]
+
+    # Несколько лиц — берём САМОЕ КРУПНОЕ, а не отбиваем кадр. Овал на экране это
+    # лишь подсказка поверх видео: гейт видит весь кадр целиком, и на форуме в него
+    # попадают проходящие за спиной люди. 30.07.2026 из-за этого гостям приходил
+    # отказ «в кадре несколько лиц». Гость всегда ближе всех к камере, поэтому его
+    # лицо заведомо самое большое — его и берём.
+    f = _largest(faces)
     w = int(f.bbox[2] - f.bbox[0])
     info: dict = {"face_px": w, "det_score": round(float(f.det_score), 3)}
+    info["bbox"] = [round(float(v), 1) for v in f.bbox]  # нужен для кропа под свап
+    if len(faces) > 1:
+        info["faces"] = len(faces)   # для логов: сколько лиц было в кадре
+        # рамки посторонних — чтобы кроп под свап их гарантированно исключил
+        info["others"] = [[round(float(v), 1) for v in o.bbox] for o in faces if o is not f]
     if w < config.FACE_MIN_PX:
         return False, "Подойдите ближе — лицо слишком мелкое в кадре.", info
     pose = getattr(f, "pose", None)

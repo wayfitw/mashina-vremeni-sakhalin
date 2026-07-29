@@ -41,6 +41,58 @@ def deshadow(image_bytes: bytes, clip: float = 2.0) -> bytes | None:
         return None
 
 
+def crop_for_swap(image_bytes: bytes, bbox, others=None) -> bytes | None:
+    """Область вокруг лица ГОСТЯ для face-swap.
+
+    Зачем: свапу нужен контекст вокруг лица, иначе его детектор его не находит
+    (проверено 27.07.2026 — тесный кроп давал «No face found»). Но на форуме в
+    кадр попадают прохожие, и свап может перенести чужое лицо. Поэтому берём
+    щедрую рамку и ЗАЖИМАЕМ её по рамкам посторонних лиц — они уже известны от
+    insightface, так что второй проход детекции не нужен.
+
+    bbox   — рамка лица гостя (insightface уже выбрал самое крупное);
+    others — рамки остальных найденных лиц, если их было больше одного.
+    """
+    try:
+        img = ImageOps.exif_transpose(Image.open(io.BytesIO(image_bytes))).convert("RGB")
+        W, H = img.size
+        x1, y1, x2, y2 = (float(v) for v in bbox)
+        cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
+        fw, fh = x2 - x1, y2 - y1
+
+        # желаемая рамка — 2.6x лица: детектору свапа контекста хватает с запасом
+        left, top = cx - fw * 1.3, cy - fh * 1.3
+        right, bottom = cx + fw * 1.3, cy + fh * 1.3
+
+        # отступаем от каждого посторонного лица, чтобы оно не попало в кадр
+        M = 8  # небольшой зазор, чтобы край чужого лица не задевало
+        for o in (others or []):
+            ox1, oy1, ox2, oy2 = (float(v) for v in o)
+            if ox2 <= x1:                      # посторонний слева
+                left = max(left, ox2 + M)
+            elif ox1 >= x2:                    # справа
+                right = min(right, ox1 - M)
+            if oy2 <= y1:                      # выше
+                top = max(top, oy2 + M)
+            elif oy1 >= y2:                    # ниже
+                bottom = min(bottom, oy1 - M)
+
+        # рамка не должна стать теснее самого лица с небольшим полем
+        pad = 0.12
+        left = min(left, x1 - fw * pad); right = max(right, x2 + fw * pad)
+        top = min(top, y1 - fh * pad);  bottom = max(bottom, y2 + fh * pad)
+
+        box = (max(0, int(left)), max(0, int(top)),
+               min(W, int(right)), min(H, int(bottom)))
+        if box[2] - box[0] < 96 or box[3] - box[1] < 96:
+            return None
+        buf = io.BytesIO(); img.crop(box).save(buf, format="PNG")
+        return buf.getvalue()
+    except Exception as exc:  # noqa: BLE001
+        print(f"[crop_for_swap] failed: {exc}")
+        return None
+
+
 def crops(image_bytes: bytes) -> tuple[bytes, bytes]:
     """Возвращает (крупное_лицо, корпус_по_пояс) как два PNG.
     Лицо отдельно — чтобы модель точно скопировала черты; корпус — чтобы видела
