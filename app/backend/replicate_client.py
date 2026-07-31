@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import base64
 import concurrent.futures
+import time
 
 import httpx
 
@@ -32,6 +33,50 @@ except Exception:  # noqa: BLE001 — пакет/токен недоступны
 
 def available() -> bool:
     return _client is not None
+
+
+# ---- Состояние оплаты, как его видит сам провайдер ----
+# Баланс через API Replicate недоступен (токен отдаёт 403), поэтому ловим то, что
+# он сообщает в ошибках: при остатке ниже $5 включается жёсткий лимит, при нуле —
+# «Insufficient credit». 31.07.2026 на форуме это заметили только по остановке
+# киоска — теперь состояние видно на странице очереди печати.
+BILLING: dict = {
+    "started_at": time.time(),
+    "low_credit_at": 0.0,   # когда последний раз сработал лимит «меньше $5»
+    "no_credit_at": 0.0,    # когда последний раз отказ «деньги кончились»
+    "images": 0,            # успешно сгенерированных кадров с момента запуска
+    "swaps": 0,             # успешных переносов лица
+}
+
+# Ориентиры для оценки расхода: кадр nano-banana ~$0.134, свап ~$0.0075,
+# улучшение лица ~$0.0095. Точные цифры смотреть в личном кабинете Replicate.
+PRICE_IMAGE = 0.134
+PRICE_SWAP = 0.0075
+
+
+def _note_billing(msg: str) -> None:
+    """Отмечает в состоянии, что провайдер пожаловался на деньги."""
+    m = msg.lower()
+    if "insufficient credit" in m:
+        BILLING["no_credit_at"] = time.time()
+    elif "less than $5" in m or ("throttled" in m and "credit" in m):
+        BILLING["low_credit_at"] = time.time()
+
+
+def billing_state() -> dict:
+    """Сводка для страницы очереди печати."""
+    now = time.time()
+    b = dict(BILLING)
+    b["spent"] = b["images"] * PRICE_IMAGE + b["swaps"] * PRICE_SWAP
+    b["low_ago"] = (now - b["low_credit_at"]) if b["low_credit_at"] else None
+    b["no_ago"] = (now - b["no_credit_at"]) if b["no_credit_at"] else None
+    if b["no_ago"] is not None and b["no_ago"] < 900:
+        b["status"] = "empty"      # деньги кончились
+    elif b["low_ago"] is not None and b["low_ago"] < 900:
+        b["status"] = "low"        # баланс ниже $5, включён лимит
+    else:
+        b["status"] = "ok"
+    return b
 
 
 def _read_output(output) -> bytes | None:
@@ -152,14 +197,17 @@ def _try_model(model: str, images: list[bytes], prompt: str, retries: int) -> by
     """Повторы на одной модели. Паузы зависят от вида сбоя:
       429 (лимит) и E004 (сервис недоступен) — ждём долго и с нарастанием,
       сетевые обрывы — короткий повтор."""
-    import time
     for attempt in range(retries):
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
             fut = pool.submit(_nano_banana_sync, images, prompt, model)
             try:
-                return fut.result(timeout=_IMAGE_TIMEOUT)
+                out = fut.result(timeout=_IMAGE_TIMEOUT)
+                if out:
+                    BILLING["images"] += 1
+                return out
             except Exception as exc:  # noqa: BLE001
                 msg = str(exc)
+                _note_billing(msg)
                 if attempt < retries - 1:
                     if "429" in msg:
                         wait = 25 * (attempt + 1)
@@ -338,7 +386,6 @@ def face_swap(target: bytes, face: bytes) -> bytes | None:
     None при ошибке — тогда отдаём кадр без свапа (лучше, чем ничего)."""
     if not _client:
         return None
-    import time
     for model in (FACE_SWAP_MODEL, FACE_SWAP_FALLBACK):
         for attempt in range(2):
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
@@ -346,6 +393,7 @@ def face_swap(target: bytes, face: bytes) -> bytes | None:
                 try:
                     out = fut.result(timeout=120)
                 except Exception as exc:  # noqa: BLE001
+                    _note_billing(str(exc))
                     if "429" in str(exc) and attempt == 0:
                         print("[replicate] face-swap 429, жду 25с")
                         time.sleep(25)
@@ -353,6 +401,7 @@ def face_swap(target: bytes, face: bytes) -> bytes | None:
                     print(f"[replicate] face-swap failed ({model.split(':')[0]}): {exc}")
                     out = None
                 if out:
+                    BILLING["swaps"] += 1
                     return out
                 break   # пустой результат повторять на той же модели бессмысленно
         if model == FACE_SWAP_MODEL:

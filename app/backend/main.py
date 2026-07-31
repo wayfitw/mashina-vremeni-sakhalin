@@ -629,6 +629,26 @@ def print_queue(key: str = "", limit: int = 40, kind: str = "card"):
     other = "photo" if kind == "card" else "card"
     other_name = "оригиналы без рамки" if kind == "card" else "готовые карточки"
 
+    # Полоса состояния оплаты. 31.07.2026 киоск встал посреди форума, и это
+    # заметили только по остановке — баланс через API Replicate не отдаётся,
+    # поэтому показываем то, что провайдер сам сообщает в ошибках.
+    import replicate_client
+    b = replicate_client.billing_state()
+    hours = max((time.time() - b["started_at"]) / 3600, 0.01)
+    if b["status"] == "empty":
+        bill_bg, bill_text = "#7f1d1d", (
+            "ДЕНЬГИ НА REPLICATE КОНЧИЛИСЬ — генерация не работает. "
+            "Пополните баланс: replicate.com/account/billing")
+    elif b["status"] == "low":
+        bill_bg, bill_text = "#7c4a11", (
+            "БАЛАНС НИЖЕ $5 — провайдер режет скорость, генерация идёт долго "
+            "и срывается. Пополните заранее: replicate.com/account/billing")
+    else:
+        bill_bg, bill_text = "#14424a", "Генерация работает, ограничений нет"
+    bill_stats = (f"с запуска сервиса: кадров {b['images']}, переносов лица "
+                  f"{b['swaps']}, ориентировочно ${b['spent']:.2f} "
+                  f"(~${b['spent'] / hours:.2f} в час)")
+
     return HTMLResponse(f"""<!doctype html><html lang=ru><head><meta charset=utf-8>
 <meta name=viewport content='width=device-width,initial-scale=1'>
 <meta http-equiv=refresh content='15'>
@@ -649,12 +669,17 @@ def print_queue(key: str = "", limit: int = 40, kind: str = "card"):
  a.dl{{display:inline-block;margin-top:6px;padding:6px 14px;background:#14707f;
    color:#fff;border-radius:8px;text-decoration:none;font-weight:700}}
  .empty{{padding:40px;text-align:center;color:#8fb0b8}}
+ .bill{{padding:10px 20px;font-size:13px;line-height:1.5;background:{bill_bg};
+   border-bottom:1px solid rgba(255,255,255,.15)}}
+ .bill b{{font-size:14px;letter-spacing:.4px}}
+ .bill span{{color:rgba(255,255,255,.72)}}
 </style></head><body>
 <header>
   <h1>ОЧЕРЕДЬ ПЕЧАТИ</h1>
   <span class=hint>{len(files)} шт. · обновляется само каждые 15 сек · новые сверху</span>
   <a class=sw href='/print-queue?key={key}&kind={other}'>показать {other_name}</a>
 </header>
+<div class=bill><b>{bill_text}</b><br><span>{bill_stats}</span></div>
 <div class=grid>{cards}</div>
 </body></html>""", headers={"Cache-Control": "no-store"})
 
