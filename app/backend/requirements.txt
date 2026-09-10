@@ -6,7 +6,9 @@ python-multipart
 qrcode[pil]
 replicate
 # ArcFace-метрика сходства лиц (гейт входа + ранжирование вариантов)
-insightface
+# Версия закреплена: на сервере доступна 2.0, но проект собран и проверен
+# на 1.0.1 — мажорный скачок может поменять API FaceAnalysis.
+insightface==1.0.1
 onnxruntime
 opencv-python
 numpy
