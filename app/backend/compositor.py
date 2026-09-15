@@ -30,7 +30,9 @@ LOGO_H = 96
 FOOTER_GAP = 64
 
 INK = (16, 24, 64)                # фирменный тёмно-синий #101840
-FOOTER_COL = (16, 24, 64)         # футер тем же фирменным синим
+GREETING_COL = (39, 68, 151)      # поздравление — королевский синий #274497 из руководства
+FOOTER_COL = (16, 24, 64)         # футер фирменным тёмно-синим
+GREETING_GAP = 74                 # высота строки поздравления над подвалом
 
 
 def _font(kind: str, size: int):
@@ -89,8 +91,9 @@ def build_card(generated_png: bytes,
     photo_h = int(photo_w * PHOTO_RATIO)
     photo_top = MARGIN
     logos_top = photo_top + photo_h + 54
+    greeting = config.CARD_GREETING
     footer_y = logos_top + LOGO_H + FOOTER_GAP
-    card_h = footer_y + 96
+    card_h = footer_y + (GREETING_GAP if greeting else 0) + 96
 
     card = Image.new("RGB", (CARD_W, card_h), (255, 255, 255))
     draw = ImageDraw.Draw(card)
@@ -153,11 +156,22 @@ def build_card(generated_png: bytes,
             card.paste(s, (x, y), s)
             x += s.width + gap
 
-    # --- футер --- (рукописный Caveat, как было согласовано)
+    # --- поздравление и футер --- (рукописный Caveat, как было согласовано)
+    text_y = footer_y
+    if greeting:
+        size = 56                      # строка длинная — кегль подбираем под ширину фото
+        while size > 34:
+            f_greet = _font("script", size)
+            if _text_w(draw, greeting, f_greet) <= photo_w:
+                break
+            size -= 2
+        gw = _text_w(draw, greeting, f_greet)
+        draw.text(((CARD_W - gw) // 2, text_y - 14), greeting, font=f_greet, fill=GREETING_COL)
+        text_y += GREETING_GAP
     if footer:
         f_foot = _font("script", 44)
         fw = _text_w(draw, footer, f_foot)
-        draw.text(((CARD_W - fw) // 2, footer_y), footer, font=f_foot, fill=FOOTER_COL)
+        draw.text(((CARD_W - fw) // 2, text_y), footer, font=f_foot, fill=FOOTER_COL)
 
     out = io.BytesIO()
     card.save(out, format="PNG")

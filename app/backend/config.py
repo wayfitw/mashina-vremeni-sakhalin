@@ -94,6 +94,11 @@ FACE_SWAP_ENABLED = os.environ.get("FACE_SWAP", "0").strip() in ("1", "true", "y
 # Передаётся в генерацию ОТДЕЛЬНЫМ изображением (описанием словами идентичности
 # не добиться — модель рисует «похожее»).
 BRAND_LOGO_ENABLED = os.environ.get("BRAND_LOGO", "1").strip() in ("1", "true", "yes")
+# Поздравление на карточке (строка над подвалом) и в письме гостю.
+# После праздника убрать: CARD_GREETING= (пусто) в .env.
+CARD_GREETING = os.environ.get(
+    "CARD_GREETING", "С Днём работника нефтяной и газовой промышленности!").strip()
+
 # _brand_cap.png — основной круглый знак «Сахалинской Энергии» на белом (для худи).
 # Имя с подчёркивания: так файл не попадает ни в /api/logos (веб), ни в ряд на карточке.
 BRAND_LOGO_FILE = LOGOS / os.environ.get("BRAND_LOGO_FILE", "_brand_cap.png")

@@ -458,13 +458,13 @@ def mobile_upload_page(session_id: str):
 body{{background:#0a1030;color:#fff;font-family:'Montserrat',-apple-system,Arial,sans-serif;
   min-height:100vh;display:flex;flex-direction:column;align-items:center;
   justify-content:center;padding:32px 24px;text-align:center}}
-.logo{{font-size:13px;font-weight:800;letter-spacing:3px;color:#f7a823;margin-bottom:24px}}
+.logo{{font-size:13px;font-weight:800;letter-spacing:3px;color:#9fbaff;margin-bottom:24px}}
 h1{{font-size:28px;font-weight:700;margin-bottom:12px}}
 p{{color:#b9bfd6;font-size:17px;line-height:1.6;margin-bottom:36px}}
-.btn{{display:block;width:100%;max-width:360px;background:linear-gradient(135deg,#f9b541,#f7a823);
+.btn{{display:block;width:100%;max-width:360px;background:linear-gradient(180deg,#ffffff,#e3e9f8);
   color:#101840;border:none;border-radius:20px;padding:22px;font-size:20px;
   font-weight:700;cursor:pointer;text-align:center}}
-.status{{margin-top:28px;font-size:17px;color:#f7a823;min-height:26px;line-height:1.5}}
+.status{{margin-top:28px;font-size:17px;color:#9fbaff;min-height:26px;line-height:1.5}}
 .status.err{{color:#f87171}}
 input[type=file]{{display:none}}
 </style>
@@ -659,7 +659,7 @@ def print_queue(key: str = "", limit: int = 40, kind: str = "card"):
    align-items:center;gap:16px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.12)}}
  h1{{font-size:17px;margin:0;font-weight:800;letter-spacing:1px}}
  .hint{{color:#9aa1bf;font-size:13px}}
- a.sw{{color:#f7a823;font-size:13px}}
+ a.sw{{color:#9fbaff;font-size:13px}}
  .grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
    gap:16px;padding:20px}}
  figure{{margin:0;background:#161f4d;border-radius:12px;overflow:hidden;
