@@ -226,7 +226,7 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
    ЛОКАЦИИ
 ═══════════════════════════════════════ */
 .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(clamp(190px,22vw,230px),1fr));
-  gap:clamp(12px,1.8vh,20px); width:100%; max-width:1000px;}
+  gap:clamp(12px,1.8vh,20px); width:100%; max-width:640px;}   /* две локации — узкая сетка, не растягиваем на весь экран */
 .loc{
   background:rgba(255,255,255,.07); border:1.5px solid #34488f; border-radius:20px;
   padding:clamp(16px,2.4vh,26px) clamp(16px,1.8vw,22px);
@@ -472,7 +472,7 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 .countdown{color:#8c93b3; margin-top:20px;}
 .hidden{display:none;}
 
-/* Поздравление на экране приветствия — плашка над заголовком */
+/* Поздравление — плашка над заголовком экрана выбора локации */
 .greeting{display:inline-block; margin:0 0 calc(var(--gap-v) + 4px);
   padding:clamp(8px,1.2vh,12px) clamp(16px,2.4vw,26px); border-radius:999px;
   background:rgba(39,68,151,.55); border:1.5px solid rgba(159,186,255,.55);
@@ -492,6 +492,5 @@ h1.brand-title{font-size:min(10.5vw,8.2vh,92px); font-weight:800; line-height:1.
   letter-spacing:.5px; text-transform:uppercase; margin:0;
   text-shadow:0 6px 30px rgba(0,0,0,.35);}
 h1.brand-title span{display:block; color:#9fbaff;}
-.hero .greeting{margin:calc(var(--gap-v) + 6px) 0 0;}
 .hero .lead{margin:calc(var(--gap-v) + 2px) 0 calc(var(--gap-v) * 1.6);}
 @media (max-height:760px){ .hero-logo{width:clamp(72px,13vh,120px);} }
