@@ -1,4 +1,4 @@
-"""«Машина времени: Сахалин» — прототип (Этап 1/2).
+"""«Я на Сахалине» для «Сахалинской Энергии» — на движке «Машины времени: Сахалин».
 
 Сквозной флоу: фото гостя → генерация 2–3 вариантов (Gemini Nano Banana) →
 выбор → композитинг карточки с логотипами → печать (CUPS/lpr) + QR.
@@ -37,7 +37,7 @@ import facecrop
 import face_metric
 import email_client
 
-app = FastAPI(title="Машина времени: Сахалин — прототип")
+app = FastAPI(title="Я на Сахалине · Сахалинская Энергия")
 
 # Сессии загрузки фото с телефона гостя (in-memory, сбрасываются при рестарте)
 _upload_sessions: dict = {}  # session_id → {status, path, created_at}
@@ -455,22 +455,22 @@ def mobile_upload_page(session_id: str):
 <title>Я на Сахалине · Загрузить фото</title>
 <style>
 *{{box-sizing:border-box;margin:0;padding:0}}
-body{{background:#071d24;color:#fff;font-family:-apple-system,Arial,sans-serif;
+body{{background:#0a1030;color:#fff;font-family:'Montserrat',-apple-system,Arial,sans-serif;
   min-height:100vh;display:flex;flex-direction:column;align-items:center;
   justify-content:center;padding:32px 24px;text-align:center}}
-.logo{{font-size:13px;font-weight:800;letter-spacing:3px;color:#5fd0df;margin-bottom:24px}}
+.logo{{font-size:13px;font-weight:800;letter-spacing:3px;color:#f7a823;margin-bottom:24px}}
 h1{{font-size:28px;font-weight:700;margin-bottom:12px}}
-p{{color:#a9c4c9;font-size:17px;line-height:1.6;margin-bottom:36px}}
-.btn{{display:block;width:100%;max-width:360px;background:linear-gradient(135deg,#14707f,#0b5563);
-  color:#fff;border:none;border-radius:20px;padding:22px;font-size:20px;
+p{{color:#b9bfd6;font-size:17px;line-height:1.6;margin-bottom:36px}}
+.btn{{display:block;width:100%;max-width:360px;background:linear-gradient(135deg,#f9b541,#f7a823);
+  color:#101840;border:none;border-radius:20px;padding:22px;font-size:20px;
   font-weight:700;cursor:pointer;text-align:center}}
-.status{{margin-top:28px;font-size:17px;color:#5fd0df;min-height:26px;line-height:1.5}}
+.status{{margin-top:28px;font-size:17px;color:#f7a823;min-height:26px;line-height:1.5}}
 .status.err{{color:#f87171}}
 input[type=file]{{display:none}}
 </style>
 </head>
 <body>
-<div class="logo">НЕФТЬ И ГАЗ САХАЛИНА 2026</div>
+<div class="logo">САХАЛИНСКАЯ ЭНЕРГИЯ</div>
 <h1>«Я на Сахалине»</h1>
 <p>Выберите своё фото из галереи.<br>Оно автоматически появится на стенде.</p>
 <label class="btn" for="photo">📷 Выбрать фото</label>
@@ -591,10 +591,10 @@ def digital(card_id: str):
     return f"""<!doctype html><html lang=ru><head><meta charset=utf-8>
 <meta name=viewport content='width=device-width,initial-scale=1'>
 <title>Я на Сахалине</title>
-<style>body{{margin:0;background:#0b5563;color:#fff;font-family:-apple-system,Arial,sans-serif;text-align:center}}
+<style>body{{margin:0;background:#101840;color:#fff;font-family:'Montserrat',-apple-system,Arial,sans-serif;text-align:center}}
 img{{max-width:92%;margin:24px auto;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.4)}}
-a{{display:inline-block;margin:12px;padding:14px 24px;background:#fff;color:#0b5563;border-radius:10px;text-decoration:none;font-weight:700}}</style>
-</head><body><h2>Ваша карточка · Машина времени: Сахалин</h2>
+a{{display:inline-block;margin:12px;padding:14px 24px;background:#fff;color:#101840;border-radius:10px;text-decoration:none;font-weight:700}}</style>
+</head><body><h2>Ваша карточка · Сахалинская Энергия</h2>
 <img src='/files/{card_id}'><br><a href='/files/{card_id}' download>Скачать фото</a></body></html>"""
 
 
@@ -644,7 +644,7 @@ def print_queue(key: str = "", limit: int = 40, kind: str = "card"):
             "БАЛАНС НИЖЕ $5 — провайдер режет скорость, генерация идёт долго "
             "и срывается. Пополните заранее: replicate.com/account/billing")
     else:
-        bill_bg, bill_text = "#14424a", "Генерация работает, ограничений нет"
+        bill_bg, bill_text = "#1d2a6b", "Генерация работает, ограничений нет"
     bill_stats = (f"с запуска сервиса: кадров {b['images']}, переносов лица "
                   f"{b['swaps']}, ориентировочно ${b['spent']:.2f} "
                   f"(~${b['spent'] / hours:.2f} в час)")
@@ -654,21 +654,21 @@ def print_queue(key: str = "", limit: int = 40, kind: str = "card"):
 <meta http-equiv=refresh content='15'>
 <title>Очередь печати · Я на Сахалине</title>
 <style>
- body{{margin:0;background:#0e1a22;color:#e8f1f3;font-family:-apple-system,Arial,sans-serif}}
- header{{position:sticky;top:0;background:#061226;padding:14px 20px;display:flex;
+ body{{margin:0;background:#0a1030;color:#eef0f7;font-family:'Montserrat',-apple-system,Arial,sans-serif}}
+ header{{position:sticky;top:0;background:#080d28;padding:14px 20px;display:flex;
    align-items:center;gap:16px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.12)}}
  h1{{font-size:17px;margin:0;font-weight:800;letter-spacing:1px}}
- .hint{{color:#8fb0b8;font-size:13px}}
- a.sw{{color:#5fd0df;font-size:13px}}
+ .hint{{color:#9aa1bf;font-size:13px}}
+ a.sw{{color:#f7a823;font-size:13px}}
  .grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
    gap:16px;padding:20px}}
- figure{{margin:0;background:#16242c;border-radius:12px;overflow:hidden;
+ figure{{margin:0;background:#161f4d;border-radius:12px;overflow:hidden;
    border:1px solid rgba(255,255,255,.08)}}
  figure img{{width:100%;display:block;background:#fff}}
- figcaption{{padding:8px 10px;font-size:12px;color:#9fbcc4;text-align:center}}
- a.dl{{display:inline-block;margin-top:6px;padding:6px 14px;background:#14707f;
+ figcaption{{padding:8px 10px;font-size:12px;color:#9aa1bf;text-align:center}}
+ a.dl{{display:inline-block;margin-top:6px;padding:6px 14px;background:#1b2766;
    color:#fff;border-radius:8px;text-decoration:none;font-weight:700}}
- .empty{{padding:40px;text-align:center;color:#8fb0b8}}
+ .empty{{padding:40px;text-align:center;color:#9aa1bf}}
  .bill{{padding:10px 20px;font-size:13px;line-height:1.5;background:{bill_bg};
    border-bottom:1px solid rgba(255,255,255,.15)}}
  .bill b{{font-size:14px;letter-spacing:.4px}}

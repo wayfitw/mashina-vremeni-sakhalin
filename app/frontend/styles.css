@@ -1,5 +1,5 @@
 :root{
-  --teal:#0b5563; --teal2:#14707f; --ink:#14313a; --bg:#eef3f4; --accent:#d97a25;
+  --teal:#101840; --teal2:#1b2766; --ink:#101840; --bg:#eef0f7; --accent:#f7a823;
   /* Высоты фиксированных полос. Экраны считают по ним свои отступы, поэтому
      достаточно поменять здесь — контент нигде не заедет под полосу. */
   --bar-top:80px; --bar-bottom:100px;
@@ -30,13 +30,13 @@
 
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
 /* Зону под индикатором внизу закрашивает html, поэтому цвет здесь должен
-   совпадать с нижней полосой партнёров (rgb(6,18,38)), а не с фоном страницы:
-   с болотным #071d24 под полосой оставался заметный чужеродный кант. */
-html{background:#061226;}
+   совпадать с нижней полосой партнёров (rgb(8,13,40)), а не с фоном страницы:
+   с болотным #0a1030 под полосой оставался заметный чужеродный кант. */
+html{background:#080d28;}
 html,body{margin:0;height:100%;}
 body{
-  font-family:-apple-system,'Helvetica Neue',Arial,sans-serif; color:var(--ink);
-  background:radial-gradient(circle at 50% -10%, #123c47 0%, #0b2831 60%, #071d24 100%);
+  font-family:'Montserrat',-apple-system,'Helvetica Neue',Arial,sans-serif; color:var(--ink);
+  background:radial-gradient(circle at 50% -10%, #1d2a6b 0%, #131d52 60%, #0a1030 100%);
   overflow:hidden;
   user-select:none; -webkit-user-select:none;
   -webkit-text-size-adjust:100%;   /* Safari иначе сам раздувает текст */
@@ -65,19 +65,19 @@ body{
 .site-bg-video{position:fixed; inset:0; width:100%; height:100%; object-fit:cover; z-index:0;
   filter:blur(4px) brightness(.9) saturate(.9); transform:scale(1.04);}
 .site-bg-overlay{position:fixed; inset:0; z-index:1;
-  background:linear-gradient(180deg, rgba(7,29,36,.55) 0%, rgba(7,29,36,.4) 45%, rgba(7,29,36,.78) 100%);}
+  background:linear-gradient(180deg, rgba(10,16,48,.55) 0%, rgba(10,16,48,.4) 45%, rgba(10,16,48,.78) 100%);}
 @keyframes fade{from{opacity:0; transform:translateY(12px);}to{opacity:1; transform:none;}}
 
 /* Заголовки считаем и от ширины, и от высоты — на низком экране крупный кегль
    съедал место, которого не хватало кнопкам. */
 h1{font-size:min(11vw,9vh,84px); margin:.1em 0; color:#fff; letter-spacing:-1px;}
-h1 span{color:#5fd0df;}
+h1 span{color:#f7a823;}
 h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
-.eyebrow{color:#5fd0df; letter-spacing:3px; text-transform:uppercase;
+.eyebrow{color:#f7a823; letter-spacing:3px; text-transform:uppercase;
   font-size:clamp(11px,1.4vh,14px); font-weight:700;}
-.lead{color:#cfe1e4; font-size:min(3.2vw,2.5vh,22px); line-height:1.5;
+.lead{color:#dfe3f0; font-size:min(3.2vw,2.5vh,22px); line-height:1.5;
   margin:var(--gap-v) 0 calc(var(--gap-v) * 2);}
-.sub{color:#a9c4c9; font-size:min(3vw,2.3vh,20px);
+.sub{color:#b9bfd6; font-size:min(3vw,2.3vh,20px);
   margin:.2em 0 calc(var(--gap-v) + 4px);}
 
 /* ═══════════════════════════════════════
@@ -104,7 +104,7 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 
 /* Режим внутренних экранов — тёмный фон как нижняя полоса + логотипы справа */
 .global-topbar.inner{
-  background:rgba(6,18,38,0.94);
+  background:rgba(8,13,40,0.94);
   backdrop-filter:blur(14px);
   -webkit-backdrop-filter:blur(14px);
   border-bottom:1px solid rgba(255,255,255,.1);
@@ -142,7 +142,7 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 ═══════════════════════════════════════ */
 .global-partners{
   position:fixed; bottom:0; left:0; right:0; z-index:20;
-  background:rgba(6,18,38,.92);
+  background:rgba(8,13,40,.92);
   backdrop-filter:blur(14px);
   -webkit-backdrop-filter:blur(14px);
   border-top:1px solid rgba(255,255,255,.1);
@@ -180,7 +180,7 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 ═══════════════════════════════════════ */
 /* Кнопки не мельче 44px по высоте — минимум для пальца на планшете. */
 .btn-primary{
-  background:linear-gradient(135deg,#14707f,#0b5563); color:#fff; border:none;
+  background:linear-gradient(135deg,#f9b541,#f7a823); color:#101840; border:none;
   border-radius:16px; padding:clamp(13px,1.8vh,18px) clamp(22px,3vw,34px);
   font-size:clamp(16px,2vh,20px); font-weight:700; cursor:pointer; min-height:44px;
   box-shadow:0 10px 30px rgba(0,0,0,.35); transition:transform .1s;
@@ -188,16 +188,18 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 .btn-primary:active{transform:scale(.96);}
 .btn-primary.big{font-size:min(4vw,2.6vh,26px);
   padding:clamp(15px,2.2vh,22px) clamp(28px,4vw,44px); border-radius:20px;}
-/* Фиолетовый вариант основной кнопки — «Загрузить с телефона» на экране съёмки.
+/* Второстепенная кнопка — «Загрузить с телефона» на экране съёмки: фирменный
+   синий с белым текстом и светлой обводкой, чтобы не терялась на тёмном фоне.
    Текст длиннее, чем у «Снять», поэтому кегль и отступы чуть меньше — иначе
    кнопка выходила заметно крупнее соседней и перетягивала внимание. */
 .btn-primary.btn-violet{
-  background:linear-gradient(135deg,#7c3aed,#5b21b6);
+  background:linear-gradient(135deg,#2b3a8f,#1b2766); color:#fff;
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.28), 0 10px 30px rgba(0,0,0,.35);
   font-size:min(3.1vw,2vh,20px);
   padding:clamp(13px,1.9vh,19px) clamp(20px,2.4vw,28px);
 }
 .btn-ghost{
-  background:transparent; color:#a9c4c9; border:1.5px solid #3a616b; border-radius:14px;
+  background:transparent; color:#b9bfd6; border:1.5px solid #4a5387; border-radius:14px;
   padding:clamp(11px,1.5vh,14px) clamp(18px,2.5vw,26px);
   font-size:clamp(15px,1.9vh,18px); cursor:pointer; min-height:44px;
   margin-top:var(--gap-v);
@@ -213,16 +215,16 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(clamp(190px,22vw,230px),1fr));
   gap:clamp(12px,1.8vh,20px); width:100%; max-width:1000px;}
 .loc{
-  background:rgba(255,255,255,.07); border:1.5px solid #2c5560; border-radius:20px;
+  background:rgba(255,255,255,.07); border:1.5px solid #2d3870; border-radius:20px;
   padding:clamp(16px,2.4vh,26px) clamp(16px,1.8vw,22px);
   cursor:pointer; text-align:left; transition:transform .12s, border-color .12s;
 }
 .loc:active{transform:scale(.97);}
-.loc.on{border-color:#5fd0df;}
+.loc.on{border-color:#f7a823;}
 .loc.off{opacity:.4; pointer-events:none;}
 .loc h3{margin:0 0 8px; color:#fff; font-size:clamp(17px,2.3vh,22px);}
-.loc-slogan{margin:0; color:#5fd0df; font-size:clamp(12px,1.6vh,14px); font-style:italic; line-height:1.4;}
-.loc.off .loc-slogan{color:#7fa0a7;}
+.loc-slogan{margin:0; color:#f7a823; font-size:clamp(12px,1.6vh,14px); font-style:italic; line-height:1.4;}
+.loc.off .loc-slogan{color:#8c93b3;}
 .loc .soon{color:var(--accent); font-size:12px; font-weight:700; margin-top:10px;}
 
 /* ═══════════════════════════════════════
@@ -230,16 +232,16 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 ═══════════════════════════════════════ */
 .outfit-grid{display:flex; gap:clamp(14px,2.4vw,24px); flex-wrap:wrap;
   justify-content:center; max-width:760px; width:100%;}
-.outfit{background:rgba(255,255,255,.07); border:1.5px solid #2c5560; border-radius:22px;
+.outfit{background:rgba(255,255,255,.07); border:1.5px solid #2d3870; border-radius:22px;
   padding:clamp(18px,3vh,30px) clamp(18px,2.4vw,28px);
   width:min(300px,44%); min-width:220px; cursor:pointer;
   transition:transform .12s, border-color .12s;}
 .outfit:active{transform:scale(.97);}
 /* hover только там, где есть мышь: на планшете подсветка залипает после тапа */
-@media (hover:hover){ .outfit:hover{border-color:#5fd0df;} }
+@media (hover:hover){ .outfit:hover{border-color:#f7a823;} }
 .outfit .emoji{font-size:clamp(34px,5vh,52px); margin-bottom:8px;}
 .outfit h3{margin:0 0 8px; color:#fff; font-size:clamp(19px,2.7vh,26px);}
-.outfit p{margin:0; color:#a9c4c9; font-size:clamp(14px,1.9vh,16px);}
+.outfit p{margin:0; color:#b9bfd6; font-size:clamp(14px,1.9vh,16px);}
 
 /* ═══════════════════════════════════════
    КАМЕРА
@@ -249,7 +251,7 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
    край овала на 78% высоты кадра, рот заведомо внутри. */
 .face-guide{position:absolute; left:50%; top:45%; transform:translate(-50%,-50%);
   width:66%; aspect-ratio:3/4; border:3px dashed rgba(255,255,255,.85); border-radius:50%;
-  box-shadow:0 0 0 1000px rgba(7,29,36,.35); pointer-events:none; z-index:2;}
+  box-shadow:0 0 0 1000px rgba(10,16,48,.35); pointer-events:none; z-index:2;}
 /* Размер задаём по ВЫСОТЕ: раньше кадр считался от ширины (min(70vw,540px)) и в
    ландшафте iPad вырастал до 720px — экран съёмки не помещался, кнопка «Снять»
    уезжала за край и была недоступна. Третий член min() страхует по ширине,
@@ -290,7 +292,7 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
   width:100%; max-width:900px;   /* хватает, чтобы пять логотипов встали в строку */
 }
 .loading-eyebrow{
-  color:rgba(95,208,223,.9); font-size:11px; font-weight:800;
+  color:rgba(247,168,35,.9); font-size:11px; font-weight:800;
   letter-spacing:3px; text-transform:uppercase; margin:0;
 }
 .loading-title{
@@ -302,7 +304,7 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 }
 .loading-bar-fill{
   height:100%; width:0%; border-radius:2px;
-  background:linear-gradient(90deg, #0f2d8a 0%, #00c2c8 100%);
+  background:linear-gradient(90deg, #f7a823 0%, #ffd27a 100%);
   transition:width .6s ease;
 }
 
@@ -312,7 +314,7 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
   margin-top:16px; padding:24px clamp(14px,3vw,36px);
   border:1px solid rgba(255,255,255,.12);
   border-radius:22px;
-  background:rgba(6,18,38,.65);
+  background:rgba(8,13,40,.65);
   backdrop-filter:blur(12px);
   -webkit-backdrop-filter:blur(12px);
   width:100%;
@@ -340,7 +342,7 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 /* ═══════════════════════════════════════
    ВАРИАНТЫ, КАРТОЧКА, ФИНАЛ
 ═══════════════════════════════════════ */
-.spinner{width:80px; height:80px; border:7px solid rgba(255,255,255,.15); border-top-color:#5fd0df;
+.spinner{width:80px; height:80px; border:7px solid rgba(255,255,255,.15); border-top-color:#f7a823;
   border-radius:50%; animation:spin 1s linear infinite; margin-bottom:24px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
@@ -349,7 +351,7 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 .variants img{height:min(52vh,420px,60vw); width:auto; aspect-ratio:3/4; object-fit:cover; border-radius:18px;
   border:4px solid transparent; cursor:pointer; box-shadow:0 8px 26px rgba(0,0,0,.4); transition:transform .12s, border-color .12s;}
 .variants img:active{transform:scale(.97);}
-.variants img.sel{border-color:#5fd0df;}
+.variants img.sel{border-color:#f7a823;}
 
 /* flex-start, а не center: колонка с QR короче карточки и при центрировании
    всплывала выше её верхнего края — на iPad на 48px. Теперь обе начинаются
@@ -381,7 +383,7 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
   margin:16px 0;
 }
 .qr-waiting{
-  color:#5fd0df; font-size:16px; font-weight:600;
+  color:#f7a823; font-size:16px; font-weight:600;
   letter-spacing:1px; animation:pulse 1.8s ease-in-out infinite;
 }
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
@@ -408,9 +410,9 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
   outline:none; transition:border-color .2s;
 }
 .email-input::placeholder{color:rgba(255,255,255,.35);}
-.email-input:focus{border-color:#5fd0df;}
+.email-input:focus{border-color:#f7a823;}
 .btn-email{
-  background:linear-gradient(135deg,#14707f,#0b5563); color:#fff; border:none;
+  background:linear-gradient(135deg,#f9b541,#f7a823); color:#101840; border:none;
   border-radius:12px; padding:12px 20px; font-size:15px; font-weight:700;
   cursor:pointer; white-space:nowrap; transition:transform .1s, opacity .2s;
 }
@@ -418,7 +420,7 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 .btn-email:disabled{opacity:.4; cursor:default;}
 .email-status{
   margin:10px 0 0; font-size:13px; min-height:18px;
-  color:#5fd0df;
+  color:#f7a823;
 }
 .email-status.error{color:#f87171;}
 
@@ -451,8 +453,8 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 }
 
 .check{width:clamp(72px,11vh,110px); height:clamp(72px,11vh,110px); border-radius:50%;
-  background:#1f9d63; color:#fff; font-size:clamp(42px,6.4vh,64px);
+  background:#f7a823; color:#101840; font-size:clamp(42px,6.4vh,64px);
   display:flex; align-items:center; justify-content:center; margin-bottom:16px;
   flex-shrink:0; box-shadow:0 10px 30px rgba(0,0,0,.4);}
-.countdown{color:#7fa0a7; margin-top:20px;}
+.countdown{color:#8c93b3; margin-top:20px;}
 .hidden{display:none;}

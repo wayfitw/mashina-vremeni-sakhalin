@@ -1,4 +1,4 @@
-"""Конфигурация прототипа «Машина времени: Сахалин».
+"""Конфигурация фотоинсталляции «Я на Сахалине» для «Сахалинской Энергии».
 
 Все параметры читаются из переменных окружения (.env). Секретов в коде нет.
 """
@@ -40,26 +40,21 @@ VARIANTS = int(os.environ.get("VARIANTS", "3"))
 
 # Образы (одежда) по выбору гостя — подставляются в промпт вместо {OUTFIT}.
 # Для нескольких вариантов перебираются по кругу (девушкам — розовый и белый).
-# Единый мерч на всех локациях (решение заказчика, как на макете):
-# белое худи с принтом «ГОРЫ ЗОВУТ / САХАЛИН ОТВЕЧАЕТ» + белая бейсболка
-# с логотипом «САХАЛИН». Одинаково для мужского и женского образа.
+# Единый мерч на всех локациях — по руководству по фирменному стилю (стр. 84,
+# «Промо одежда»): худи фирменного тёмно-синего цвета, на груди основная версия
+# логотипа. Кепки в руководстве нет — не рисуем. Одинаково для мужского и женского образа.
+# Надпись на рукаве из руководства не просим: в поясном кадре рукав почти не виден,
+# а лишний текст модель пишет с ошибками.
 _MERCH_OUTFIT = (
-    'a clean white hoodie with a REQUIRED blue emblem of a downhill skier on the chest — a '
-    'stylised skier leaning forward on skis with ski poles, printed in blue directly ABOVE '
-    'the text, always clearly visible and NEVER omitted — and below the skier the blue Cyrillic '
-    'inscription "ГОРЫ ЗОВУТ" and "САХАЛИН ОТВЕЧАЕТ" printed in two neat centered lines of '
-    'capital letters on the chest, and a white baseball cap. IMAGE 4 IS THE OFFICIAL BRAND LOGO for '
-    'the front of the cap — reproduce it EXACTLY as in image 4. The cap logo has TWO parts and BOTH '
-    # Слово — первым пунктом: модель чаще доносит первый элемент списка, чем второй,
-    # и на кадрах 26.07.2026 щит без слова "САХАЛИН" встречался регулярно, наоборот — нет.
-    'must be present and clearly legible: (1) the word "САХАЛИН" in bold dark capital letters, '
-    'printed large enough to read, and (2) directly ABOVE the word the navy shield emblem with the '
-    'white lighthouse silhouette. The word "САХАЛИН" is the MOST IMPORTANT part: if only one part '
-    'fits, keep the word. NEVER omit the word "САХАЛИН" and never leave the shield alone. Keep the '
-    'identical shapes and colours, scaled to the cap and following the curve of the fabric; do not '
-    'redraw or invent a different emblem, and do not use image 4 anywhere else. Neutral light '
-    'trousers and clean white sneakers. The Cyrillic prints must be spelled EXACTLY as given, '
-    'clean and legible'
+    'a clean deep navy blue hoodie (brand colour #101840) with a REQUIRED round brand logo printed '
+    'in the centre of the chest. IMAGE 4 IS THE OFFICIAL BRAND LOGO — reproduce it EXACTLY as in '
+    'image 4: a navy circle with a thin white ring, the white silhouette of Sakhalin island and the '
+    'mainland coast inside, two small orange stars to the right of the island, and the white capital '
+    'lettering "САХАЛИНСКАЯ ЭНЕРГИЯ" along the top arc and "SAKHALIN ENERGY" along the bottom arc. '
+    'The logo is clearly visible, printed large enough to read (about a palm wide), flat on the fabric '
+    'and following its folds. Keep the identical shapes, colours and lettering; do not redraw, '
+    'simplify or invent a different emblem, do not add any other print, and do not use image 4 '
+    'anywhere else. No cap, no hat. Neutral dark grey trousers and clean white sneakers'
 )
 OUTFITS = {
     "female": [_MERCH_OUTFIT],
@@ -97,9 +92,9 @@ FACE_SWAP_ENABLED = os.environ.get("FACE_SWAP", "0").strip() in ("1", "true", "y
 
 # Фирменный логотип бренда, который модель должна воспроизвести на мерче.
 # Передаётся в генерацию ОТДЕЛЬНЫМ изображением (описанием словами идентичности
-# не добиться — модель рисует «похожее»). Файл: assets/logos/04_sakhalin.png.
+# не добиться — модель рисует «похожее»).
 BRAND_LOGO_ENABLED = os.environ.get("BRAND_LOGO", "1").strip() in ("1", "true", "yes")
-# _brand_cap.png — версия знака для мерча: щит + «САХАЛИН», без подписи «МАЯК РОССИИ».
+# _brand_cap.png — основной круглый знак «Сахалинской Энергии» на белом (для худи).
 # Имя с подчёркивания: так файл не попадает ни в /api/logos (веб), ни в ряд на карточке.
 BRAND_LOGO_FILE = LOGOS / os.environ.get("BRAND_LOGO_FILE", "_brand_cap.png")
 
