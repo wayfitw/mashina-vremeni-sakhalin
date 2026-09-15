@@ -1,4 +1,4 @@
-// «Я на Сахалине» для «Сахалинской Энергии» — киоск-флоу
+// AI-фотоинсталляция «Сахалинская Энергия» — киоск-флоу
 const state = { location: null, locationTitle: null, outfit: 'male', variants: [], chosen: null, card: null };
 let stream = null, idleTimer = null, loadingElapsed = null, qrPoller = null;
 
@@ -39,11 +39,11 @@ function updateTopbar(screenName) {
   const partners = document.querySelector('.global-partners');
   if (screenName === 'welcome') {
     topbar.classList.remove('inner');
-    title.textContent = 'САХАЛИНСКАЯ ЭНЕРГИЯ';
+    title.textContent = '';   // на приветствии название крупно в самом экране
     if (partners) partners.style.display = '';   // показать нижнюю полосу
   } else {
     topbar.classList.add('inner');
-    title.textContent = 'Я НА САХАЛИНЕ';
+    title.textContent = 'САХАЛИНСКАЯ ЭНЕРГИЯ';
     if (partners) partners.style.display = 'none'; // убрать нижнюю полосу
   }
 }

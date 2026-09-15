@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Сахалинская Энергия">
 <meta name="theme-color" content="#101840">
-<title>Я на Сахалине · Сахалинская Энергия</title>
+<title>Сахалинская Энергия · AI-фотоинсталляция</title>
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -23,15 +23,15 @@
 <body>
 <div id="app">
 
-  <!-- Глобальный фон: зацикленное видео -->
-  <video class="site-bg-video" autoplay muted loop playsinline preload="auto" poster="media/intro-poster.jpg">
-    <source src="media/intro.mp4" type="video/mp4">
-  </video>
-  <div class="site-bg-overlay"></div>
+  <!-- Глобальный фон: фирменный синий и контур острова (видео убрано по решению заказчика) -->
+  <div class="brand-bg" aria-hidden="true">
+    <img class="bg-island fill" src="media/island_fill.png" alt="">
+    <img class="bg-island outline" src="media/island_outline.png" alt="">
+  </div>
 
   <!-- ═══ ГЛОБАЛЬНЫЙ ТОПБАР ═══ -->
   <div class="global-topbar" id="global-topbar">
-    <span class="global-topbar-title" id="topbar-title">САХАЛИНСКАЯ ЭНЕРГИЯ</span>
+    <span class="global-topbar-title" id="topbar-title"></span>
     <div class="topbar-logos" id="topbar-logos"></div>
   </div>
 
@@ -44,9 +44,10 @@
   <!-- 1. Приветствие -->
   <section class="screen active" data-screen="welcome">
     <div class="hero">
+      <img class="hero-logo" src="media/logo_round.png" alt="Сахалинская Энергия">
+      <p class="eyebrow">AI-фотоинсталляция</p>
+      <h1 class="brand-title">Сахалинская <span>Энергия</span></h1>
       <p class="greeting">С Днём работника нефтяной и газовой промышленности!</p>
-      <p class="eyebrow">Сахалинская Энергия · AI-фотоинсталляция</p>
-      <h1>«Я на <span>Сахалине</span>»</h1>
       <p class="lead">За секунды перенесём вас к легендарным местам острова.<br>Сделайте фото — и заберите карточку на память.</p>
       <button class="btn-primary big" data-go="locations">Путешествовать по Сахалину →</button>
     </div>

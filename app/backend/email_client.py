@@ -21,8 +21,8 @@ def send_card(to_email: str, card_path: Path) -> dict:
         return {"sent": False, "reason": "Отправка на почту пока недоступна — заберите фото по QR-коду"}
 
     msg = EmailMessage()
-    msg["Subject"] = "Ваша карточка · «Я на Сахалине»"
-    msg["From"] = f"Я на Сахалине <{config.SMTP_FROM}>"
+    msg["Subject"] = "Ваша карточка · «Сахалинская Энергия»"
+    msg["From"] = f"Сахалинская Энергия <{config.SMTP_FROM}>"
     msg["To"] = to_email
     # Date и Message-ID smtplib сам НЕ ставит, а их отсутствие — классический
     # признак спам-скрипта для фильтров. Домен в Message-ID — от отправителя,
@@ -35,7 +35,7 @@ def send_card(to_email: str, card_path: Path) -> dict:
     # Цифровую версию гость и так получает по QR-коду на экране.
     msg.set_content(
         "Здравствуйте!\n\n"
-        "Вы сфотографировались на AI-фотоинсталляции «Я на Сахалине» — "
+        "Вы сфотографировались на AI-фотоинсталляции «Сахалинская Энергия» — "
         "ваша персональная фото-карточка прикреплена к этому письму.\n\n"
         + (f"{config.CARD_GREETING}\n" if config.CARD_GREETING else "")
         # та же подпись, что в подвале самой карточки (locations.json → card_footer)
@@ -48,7 +48,7 @@ def send_card(to_email: str, card_path: Path) -> dict:
         card_path.read_bytes(),
         maintype="image",
         subtype="png",
-        filename="ya_na_sakhaline.png",
+        filename="sakhalin_energy.png",
     )
 
     ctx = ssl.create_default_context()

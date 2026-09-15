@@ -1,4 +1,4 @@
-"""«Я на Сахалине» для «Сахалинской Энергии» — на движке «Машины времени: Сахалин».
+"""AI-фотоинсталляция «Сахалинская Энергия» — на движке «Машины времени: Сахалин».
 
 Сквозной флоу: фото гостя → генерация 2–3 вариантов (Gemini Nano Banana) →
 выбор → композитинг карточки с логотипами → печать (CUPS/lpr) + QR.
@@ -37,7 +37,7 @@ import facecrop
 import face_metric
 import email_client
 
-app = FastAPI(title="Я на Сахалине · Сахалинская Энергия")
+app = FastAPI(title="Сахалинская Энергия · AI-фотоинсталляция")
 
 # Сессии загрузки фото с телефона гостя (in-memory, сбрасываются при рестарте)
 _upload_sessions: dict = {}  # session_id → {status, path, created_at}
@@ -452,7 +452,7 @@ def mobile_upload_page(session_id: str):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Я на Сахалине · Загрузить фото</title>
+<title>Сахалинская Энергия · Загрузить фото</title>
 <style>
 *{{box-sizing:border-box;margin:0;padding:0}}
 body{{background:#0a1030;color:#fff;font-family:'Montserrat',-apple-system,Arial,sans-serif;
@@ -470,8 +470,8 @@ input[type=file]{{display:none}}
 </style>
 </head>
 <body>
-<div class="logo">САХАЛИНСКАЯ ЭНЕРГИЯ</div>
-<h1>«Я на Сахалине»</h1>
+<div class="logo">AI-ФОТОИНСТАЛЛЯЦИЯ</div>
+<h1>Сахалинская Энергия</h1>
 <p>Выберите своё фото из галереи.<br>Оно автоматически появится на стенде.</p>
 <label class="btn" for="photo">📷 Выбрать фото</label>
 <input type="file" id="photo" accept="image/*">
@@ -590,7 +590,7 @@ def digital(card_id: str):
     _output_file(card_id)  # проверка, что запрошен файл из output, а не путь наружу
     return f"""<!doctype html><html lang=ru><head><meta charset=utf-8>
 <meta name=viewport content='width=device-width,initial-scale=1'>
-<title>Я на Сахалине</title>
+<title>Сахалинская Энергия</title>
 <style>body{{margin:0;background:#101840;color:#fff;font-family:'Montserrat',-apple-system,Arial,sans-serif;text-align:center}}
 img{{max-width:92%;margin:24px auto;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.4)}}
 a{{display:inline-block;margin:12px;padding:14px 24px;background:#fff;color:#101840;border-radius:10px;text-decoration:none;font-weight:700}}</style>
@@ -652,7 +652,7 @@ def print_queue(key: str = "", limit: int = 40, kind: str = "card"):
     return HTMLResponse(f"""<!doctype html><html lang=ru><head><meta charset=utf-8>
 <meta name=viewport content='width=device-width,initial-scale=1'>
 <meta http-equiv=refresh content='15'>
-<title>Очередь печати · Я на Сахалине</title>
+<title>Очередь печати · Сахалинская Энергия</title>
 <style>
  body{{margin:0;background:#0a1030;color:#eef0f7;font-family:'Montserrat',-apple-system,Arial,sans-serif}}
  header{{position:sticky;top:0;background:#080d28;padding:14px 20px;display:flex;
