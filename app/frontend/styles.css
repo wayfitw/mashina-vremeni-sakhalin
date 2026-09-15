@@ -501,7 +501,11 @@ h2{font-size:min(6vw,4.6vh,40px); color:#fff; margin:.2em 0;}
 /* ═══════════════════════════════════════
    ЭКРАН ПРИВЕТСТВИЯ «САХАЛИНСКАЯ ЭНЕРГИЯ»
 ═══════════════════════════════════════ */
-.hero{display:flex; flex-direction:column; align-items:center; max-width:980px;}
+/* Блок приподнят над центром (просьба заказчика 15.09.2026). Отступом, а не
+   transform: отступ участвует в раскладке, и на низком экране safe center
+   прижмёт блок к верху и даст прокрутку, а не загонит логотип под полосу. */
+.hero{display:flex; flex-direction:column; align-items:center; max-width:980px;
+  margin-bottom:clamp(0px, 11vh, 130px);}
 .hero-logo{display:block; width:clamp(92px,17vh,180px); height:auto;
   margin:0 0 calc(var(--gap-v) + 4px);
   filter:drop-shadow(0 14px 36px rgba(0,0,0,.45)) drop-shadow(0 0 46px rgba(159,186,255,.22));}
@@ -511,4 +515,5 @@ h1.brand-title{font-size:min(10.5vw,8.2vh,92px); font-weight:800; line-height:1.
   text-shadow:0 6px 30px rgba(0,0,0,.35);}
 h1.brand-title span{display:block; color:#9fbaff;}
 .hero .lead{margin:calc(var(--gap-v) + 2px) 0 calc(var(--gap-v) * 1.6);}
-@media (max-height:760px){ .hero-logo{width:clamp(72px,13vh,120px);} }
+@media (max-height:760px){ .hero-logo{width:clamp(72px,13vh,120px);}
+  .hero{margin-bottom:7vh;} }   /* на низком экране места меньше — поднимаем скромнее */
