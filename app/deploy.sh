@@ -4,8 +4,8 @@
 # Повторный запуск безопасен — обновляет код и перезапускает сервис.
 set -euo pipefail
 
-REPO="https://github.com/wayfitw/sakhalin-energy-photo.git"
-DIR="/opt/sakhalin-energy-photo"
+REPO="https://github.com/wayfitw/sakhalinenergy.git"
+DIR="/opt/sakhalinenergy"
 PORT=8000
 
 echo "==> 1/7 Системные пакеты"

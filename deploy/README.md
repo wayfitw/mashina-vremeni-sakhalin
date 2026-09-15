@@ -14,8 +14,8 @@
 ```bash
 ssh root@IP_СЕРВЕРА
 apt-get update && apt-get install -y git
-git clone https://github.com/wayfitw/sakhalin-energy-photo.git /opt/sakhalin-energy-photo
-bash /opt/sakhalin-energy-photo/deploy/install.sh
+git clone https://github.com/wayfitw/sakhalinenergy.git /opt/sakhalinenergy
+bash /opt/sakhalinenergy/deploy/install.sh
 ```
 
 Скрипт ставит системные пакеты, создаёт venv, ставит зависимости, поднимает
@@ -24,7 +24,7 @@ systemd-сервис `sakhalin-energy` на `127.0.0.1:8000`.
 ## 2. Ключи
 
 ```bash
-nano /opt/sakhalin-energy-photo/app/backend/.env
+nano /opt/sakhalinenergy/app/backend/.env
 ```
 
 | Параметр | Значение |
@@ -52,7 +52,7 @@ nano /opt/sakhalin-energy-photo/app/backend/.env
 ## 3. nginx + HTTPS
 
 ```bash
-cp /opt/sakhalin-energy-photo/deploy/nginx.conf /etc/nginx/sites-available/sakhalin-energy
+cp /opt/sakhalinenergy/deploy/nginx.conf /etc/nginx/sites-available/sakhalin-energy
 nano /etc/nginx/sites-available/sakhalin-energy      # заменить server_name на домен
 ln -s /etc/nginx/sites-available/sakhalin-energy /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
@@ -79,7 +79,7 @@ journalctl -u sakhalin-energy -f           # логи генерации
 ## Обновление
 
 ```bash
-cd /opt/sakhalin-energy-photo && git pull
+cd /opt/sakhalinenergy && git pull
 app/backend/.venv/bin/pip install -q -r app/backend/requirements.txt
 systemctl restart sakhalin-energy
 ```

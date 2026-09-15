@@ -3,8 +3,8 @@
 # Запуск от root:  bash deploy/install.sh
 set -euo pipefail
 
-APP_DIR=${APP_DIR:-/opt/sakhalin-energy-photo}
-REPO=${REPO:-https://github.com/wayfitw/sakhalin-energy-photo.git}
+APP_DIR=${APP_DIR:-/opt/sakhalinenergy}
+REPO=${REPO:-https://github.com/wayfitw/sakhalinenergy.git}
 SERVICE=sakhalin-energy
 
 echo "==> Системные пакеты"
