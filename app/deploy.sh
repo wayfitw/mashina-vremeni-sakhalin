@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Развёртывание «Машина времени: Сахалин» на чистом Ubuntu VPS (AEZA и т.п.).
+# Развёртывание AI-фотоинсталляции «Сахалинская Энергия» на чистом Ubuntu VPS (AEZA и т.п.).
 # Запуск от root:   bash deploy.sh
 # Повторный запуск безопасен — обновляет код и перезапускает сервис.
 set -euo pipefail
 
-REPO="https://github.com/wayfitw/mashina-vremeni-sakhalin.git"
-DIR="/opt/mashina-vremeni-sakhalin"
+REPO="https://github.com/wayfitw/sakhalin-energy-photo.git"
+DIR="/opt/sakhalin-energy-photo"
 PORT=8000
 
 echo "==> 1/7 Системные пакеты"
@@ -62,9 +62,9 @@ else
 fi
 
 echo "==> 6/7 systemd-сервис"
-cat > /etc/systemd/system/sakhalin.service <<EOF
+cat > /etc/systemd/system/sakhalin-energy.service <<EOF
 [Unit]
-Description=Mashina Vremeni Sakhalin (FastAPI)
+Description=Sakhalin Energy AI photo kiosk (FastAPI)
 After=network.target
 
 [Service]
@@ -78,10 +78,10 @@ Environment=PYTHONUNBUFFERED=1
 WantedBy=multi-user.target
 EOF
 systemctl daemon-reload
-systemctl enable --now sakhalin >/dev/null 2>&1 || systemctl restart sakhalin
+systemctl enable --now sakhalin-energy >/dev/null 2>&1 || systemctl restart sakhalin-energy
 
 echo "==> 7/7 nginx (порт 80 → приложение)"
-cat > /etc/nginx/sites-available/sakhalin <<EOF
+cat > /etc/nginx/sites-available/sakhalin-energy <<EOF
 server {
     listen 80 default_server;
     client_max_body_size 25m;
@@ -95,7 +95,7 @@ server {
     }
 }
 EOF
-ln -sf /etc/nginx/sites-available/sakhalin /etc/nginx/sites-enabled/sakhalin
+ln -sf /etc/nginx/sites-available/sakhalin-energy /etc/nginx/sites-enabled/sakhalin-energy
 rm -f /etc/nginx/sites-enabled/default
 nginx -t >/dev/null && systemctl reload nginx
 
@@ -106,9 +106,9 @@ echo " ГОТОВО.  Откройте:  http://$IP"
 echo
 echo " Осталось вписать ключ:"
 echo "   nano $DIR/app/backend/.env       # REPLICATE_API_TOKEN=... и PUBLIC_BASE_URL=http://$IP"
-echo "   systemctl restart sakhalin"
+echo "   systemctl restart sakhalin-energy"
 echo
-echo " Логи:      journalctl -u sakhalin -f"
-echo " Статус:    systemctl status sakhalin"
+echo " Логи:      journalctl -u sakhalin-energy -f"
+echo " Статус:    systemctl status sakhalin-energy"
 echo " Обновить:  bash $DIR/app/deploy.sh"
 echo "=================================================="

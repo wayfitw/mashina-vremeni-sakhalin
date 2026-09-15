@@ -156,9 +156,9 @@ FACE_ENHANCE_MAX_SHARP = float(os.environ.get("FACE_ENHANCE_MAX_SHARP", "140"))
 # вернёт вежливый отказ, флоу не ломается.
 SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.yandex.ru").strip()
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "465"))
-SMTP_USER = os.environ.get("SMTP_USER", "nasakhaline@yandex.com").strip()
+SMTP_USER = os.environ.get("SMTP_USER", "").strip()
 SMTP_PASS = os.environ.get("SMTP_PASS", "").strip()
-SMTP_FROM = os.environ.get("SMTP_FROM", "nasakhaline@yandex.com").strip()
+SMTP_FROM = os.environ.get("SMTP_FROM", "").strip()
 
 # --- ArcFace-метрика сходства лиц (insightface) — рекомендация №1 ---
 FACE_MODEL = os.environ.get("FACE_MODEL", "buffalo_l").strip()

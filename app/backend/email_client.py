@@ -30,7 +30,7 @@ def send_card(to_email: str, card_path: Path) -> dict:
     msg["Date"] = formatdate(localtime=True)
     msg["Message-ID"] = make_msgid(domain=config.SMTP_FROM.split("@")[-1])
     # Без ссылок в теле. Проверено 26.07.2026: письмо без ссылки исходящий фильтр
-    # Яндекса пропустил, то же письмо со ссылкой на nasakhalin.ru завернул с
+    # Яндекса пропустил, то же письмо со ссылкой на сайт киоска завернул с
     # 554 "suspicion of SPAM" — молодой домен в теле письма для фильтра триггер.
     # Цифровую версию гость и так получает по QR-коду на экране.
     msg.set_content(

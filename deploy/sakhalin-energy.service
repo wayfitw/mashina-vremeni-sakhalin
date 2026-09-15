@@ -1,5 +1,5 @@
 [Unit]
-Description=Машина времени: Сахалин — AI фото-киоск (FastAPI)
+Description=Сахалинская Энергия — AI фото-киоск (FastAPI)
 After=network-online.target
 Wants=network-online.target
 

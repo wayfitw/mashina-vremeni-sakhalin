@@ -14,17 +14,17 @@
 ```bash
 ssh root@IP_СЕРВЕРА
 apt-get update && apt-get install -y git
-git clone https://github.com/wayfitw/mashina-vremeni-sakhalin.git /opt/mashina-vremeni
-bash /opt/mashina-vremeni/deploy/install.sh
+git clone https://github.com/wayfitw/sakhalin-energy-photo.git /opt/sakhalin-energy-photo
+bash /opt/sakhalin-energy-photo/deploy/install.sh
 ```
 
 Скрипт ставит системные пакеты, создаёт venv, ставит зависимости, поднимает
-systemd-сервис `mashina-vremeni` на `127.0.0.1:8000`.
+systemd-сервис `sakhalin-energy` на `127.0.0.1:8000`.
 
 ## 2. Ключи
 
 ```bash
-nano /opt/mashina-vremeni/app/backend/.env
+nano /opt/sakhalin-energy-photo/app/backend/.env
 ```
 
 | Параметр | Значение |
@@ -33,7 +33,7 @@ nano /opt/mashina-vremeni/app/backend/.env
 | `PUBLIC_BASE_URL` | `https://ваш-домен` — иначе QR будет вести на localhost |
 | `PRINT_ENABLED` | `0` на сервере (принтер стоит на стенде, не здесь) |
 
-После правки: `systemctl restart mashina-vremeni`
+После правки: `systemctl restart sakhalin-energy`
 
 ### Режим генерации и порог лица
 
@@ -43,7 +43,7 @@ nano /opt/mashina-vremeni/app/backend/.env
 
 | Параметр | Рабочее значение | Что будет иначе |
 |---|---|---|
-| `GEN_MODE` | `edit` | При `composite` гость вклеивается в эталон как есть. На эталоне «Мыс Великан» стоит посторонний с фотоаппаратом и виден значок фотобанка — они попадут на карточку каждому гостю. |
+| `GEN_MODE` | `edit` | При `composite` гость вклеивается в эталон как есть. Всё, что есть на эталоне локации — посторонние люди, водяные знаки фотобанка, — попадёт на карточку каждому гостю. |
 | `FACE_MIN_PX` | `250` | По умолчанию 512. Вебка столько почти не выдаёт, и гость получает «Подойдите ближе — лицо слишком мелкое в кадре». |
 
 Там же включаются `FACE_ENHANCE`, `FACE_DESHADOW` и `FACE_SWAP` — без них
@@ -52,9 +52,9 @@ nano /opt/mashina-vremeni/app/backend/.env
 ## 3. nginx + HTTPS
 
 ```bash
-cp /opt/mashina-vremeni/deploy/nginx.conf /etc/nginx/sites-available/mashina-vremeni
-nano /etc/nginx/sites-available/mashina-vremeni      # заменить server_name на домен
-ln -s /etc/nginx/sites-available/mashina-vremeni /etc/nginx/sites-enabled/
+cp /opt/sakhalin-energy-photo/deploy/nginx.conf /etc/nginx/sites-available/sakhalin-energy
+nano /etc/nginx/sites-available/sakhalin-energy      # заменить server_name на домен
+ln -s /etc/nginx/sites-available/sakhalin-energy /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl reload nginx
 
@@ -66,33 +66,22 @@ certbot --nginx -d ваш-домен
 > только на `https://` или `localhost`. По голому `http://IP` съёмка с камеры
 > работать не будет — гость увидит «камера недоступна».
 
-## 4. Фоновое видео (опционально)
-
-`app/frontend/media/intro.mp4` не хранится в git (большой файл). Если нужен
-зацикленный фон — скопировать вручную:
-
-```bash
-scp intro.mp4 root@IP:/opt/mashina-vremeni/app/frontend/media/
-```
-
-Без файла сайт работает, фон — постер/тёмный.
-
-## 5. Проверка
+## 4. Проверка
 
 ```bash
 curl -s localhost:8000/api/health          # {"ok":true,...}
-systemctl status mashina-vremeni
-journalctl -u mashina-vremeni -f           # логи генерации
+systemctl status sakhalin-energy
+journalctl -u sakhalin-energy -f           # логи генерации
 ```
 
-Открыть `https://ваш-домен` — должен появиться экран «Я на Сахалине».
+Открыть `https://ваш-домен` — должен появиться экран «Сахалинская Энергия».
 
 ## Обновление
 
 ```bash
-cd /opt/mashina-vremeni && git pull
+cd /opt/sakhalin-energy-photo && git pull
 app/backend/.venv/bin/pip install -q -r app/backend/requirements.txt
-systemctl restart mashina-vremeni
+systemctl restart sakhalin-energy
 ```
 
 ## Замечания по эксплуатации

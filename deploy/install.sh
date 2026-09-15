@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Установка «Машина времени: Сахалин» на Ubuntu/Debian VPS (AEZA и любой другой).
+# Установка AI-фотоинсталляции «Сахалинская Энергия» на Ubuntu/Debian VPS (AEZA и любой другой).
 # Запуск от root:  bash deploy/install.sh
 set -euo pipefail
 
-APP_DIR=${APP_DIR:-/opt/mashina-vremeni}
-REPO=${REPO:-https://github.com/wayfitw/mashina-vremeni-sakhalin.git}
-SERVICE=mashina-vremeni
+APP_DIR=${APP_DIR:-/opt/sakhalin-energy-photo}
+REPO=${REPO:-https://github.com/wayfitw/sakhalin-energy-photo.git}
+SERVICE=sakhalin-energy
 
 echo "==> Системные пакеты"
 apt-get update -qq

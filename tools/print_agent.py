@@ -7,6 +7,7 @@
     python print_agent.py
 
 Настройка — переменные окружения (или правка констант ниже):
+    BASE_URL         адрес сайта киоска, например https://ваш-домен
     PRINT_QUEUE_KEY  ключ доступа к очереди (обязателен)
     PRINTER_NAME     имя принтера как в системе; пусто — принтер по умолчанию
     POLL_SECONDS     как часто спрашивать сервер, по умолчанию 3
@@ -26,7 +27,7 @@ from pathlib import Path
 
 import requests
 
-BASE = os.environ.get("BASE_URL", "https://nasakhalin.ru").rstrip("/")
+BASE = os.environ.get("BASE_URL", "http://localhost:8000").rstrip("/")
 KEY = os.environ.get("PRINT_QUEUE_KEY", "")
 PRINTER = os.environ.get("PRINTER_NAME", "")          # пусто = принтер по умолчанию
 POLL = int(os.environ.get("POLL_SECONDS", "3"))
